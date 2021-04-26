@@ -1,11 +1,20 @@
 import { css, html } from 'https://cdn.pika.dev/lit-element';
 import Config from '../Config.js';
 import OBS from '../OBS.js';
+import Streamlabs from '../Streamlabs.js';
 import DockTab from './DockTab.js';
 import './Section.js';
 
 if(!Config.get('start-time')) {
     Config.set('start-time', 60 * 60 * 12); // seconds
+}
+
+if(!Config.get('sub-add-time')) {
+    Config.set('sub-add-time', 60 * 5); // seconds
+}
+
+if(!Config.get('donation-add-time')) {
+    Config.set('donation-add-time', 60 * 1); // seconds
 }
 
 const bc = new BroadcastChannel('obs-tools-widget-com');
@@ -65,6 +74,7 @@ export default class Timer extends DockTab {
         this.time = 60 * 60 * 12;
         this.elapsedTime = 0;
         this.autoSceneSwitchEnabled = false;
+        this.subathonFeaturesEnabled = false;
 
         if(Config.get('elapsed-time') != null) {
             this.elapsedTime = Config.get('elapsed-time');
@@ -130,6 +140,32 @@ export default class Timer extends DockTab {
                 this.update();
             })
         })
+
+        // subathon features
+        const handleDonation = (e) => {
+            if(this.subathonFeaturesEnabled) {
+                const amount = +e.formatted_amount.replace(/[\€|\$]/g, '');
+                const donoAddTime = Config.get('donation-add-time') * amount;
+                this.time += donoAddTime;
+                if(this.timerPlaying) {
+                    this.updateOverlayTimer();
+                }
+            }
+        }
+        
+        const handleSub = (e) => {
+            if(this.subathonFeaturesEnabled) {
+                const subAddTime = Config.get('sub-add-time');
+                this.time += subAddTime;
+                if(this.timerPlaying) {
+                    this.updateOverlayTimer();
+                }
+            }
+        }
+
+        Streamlabs.on('subscription', handleSub);
+        Streamlabs.on('resub', handleSub);
+        Streamlabs.on('donation', handleDonation);
     }
 
     updateOverlayTimer() {
@@ -147,6 +183,9 @@ export default class Timer extends DockTab {
             this.elapsedTime = 0;
             this.updateOverlayTimer();
             this.update();
+
+            Config.set('sub-counter', 0);
+            Config.set('donation-counter', 0);
         }
     }
 
@@ -188,6 +227,16 @@ export default class Timer extends DockTab {
         const timerMinutes = Math.round(this.time / 60) % 60;
         const timerSeconds = Math.round(this.time) % 60;
 
+        const subAddTime = Config.get('sub-add-time');
+        const subHours = Math.round(subAddTime / 60 / 60);
+        const subMinutes = Math.round(subAddTime / 60) % 60;
+        const subSeconds = Math.round(subAddTime) % 60;
+
+        const donoAddTime = Config.get('donation-add-time');
+        const donoHours = Math.round(donoAddTime / 60 / 60);
+        const donoMinutes = Math.round(donoAddTime / 60) % 60;
+        const donoSeconds = Math.round(donoAddTime) % 60;
+
         const updateStartTime = () => {
             const h = this.shadowRoot.querySelector('#startTimeH').valueAsNumber, 
                   m = this.shadowRoot.querySelector('#startTimeM').valueAsNumber, 
@@ -195,6 +244,24 @@ export default class Timer extends DockTab {
 
             const time = (h * 60 * 60) + (m * 60) + (s);
             Config.set('start-time', time);
+        }
+
+        const updateSubTime = () => {
+            const h = this.shadowRoot.querySelector('#subTimeH').valueAsNumber, 
+                  m = this.shadowRoot.querySelector('#subTimeM').valueAsNumber, 
+                  s = this.shadowRoot.querySelector('#subTimeS').valueAsNumber;
+
+            const time = (h * 60 * 60) + (m * 60) + (s);
+            Config.set('sub-add-time', time);
+        }
+
+        const updateDonoTime = () => {
+            const h = this.shadowRoot.querySelector('#donoTimeH').valueAsNumber, 
+                  m = this.shadowRoot.querySelector('#donoTimeM').valueAsNumber, 
+                  s = this.shadowRoot.querySelector('#donoTimeS').valueAsNumber;
+
+            const time = (h * 60 * 60) + (m * 60) + (s);
+            Config.set('donation-add-time', time);
         }
 
         return html`
@@ -240,10 +307,27 @@ export default class Timer extends DockTab {
                     <input id="startTimeS" min="0" @change="${e => updateStartTime()}" type="number" value="${seconds}"/>s
                 </div>
             </div>
+
+            <obs-dock-tab-section optional section-title="Subathon Features"
+                @setion-change="${(e) => {this.subathonFeaturesEnabled = e.target.enabled;}}">
+
+                <div>
+                    <label>Time added by Sub</label>
+                    <input id="subTimeH" @change="${e => updateSubTime()}" type="number" value="${subHours}"/>h
+                    <input id="subTimeM" @change="${e => updateSubTime()}" type="number" value="${subMinutes}"/>m
+                    <input id="subTimeS" @change="${e => updateSubTime()}" type="number" value="${subSeconds}"/>s
+                </div>
+                <br/>
+                <div>
+                    <label>Time added by Donation/€</label>
+                    <input id="donoTimeH" @change="${e => updateDonoTime()}" type="number" value="${donoHours}"/>h
+                    <input id="donoTimeM" @change="${e => updateDonoTime()}" type="number" value="${donoMinutes}"/>m
+                    <input id="donoTimeS" @change="${e => updateDonoTime()}" type="number" value="${donoSeconds}"/>s
+                </div>
+            </obs-dock-tab-section>
+            
             <obs-dock-tab-section optional section-title="Automatic scene switch"
-                @setion-change="${(e) => {
-                    this.autoSceneSwitchEnabled = e.target.enabled;
-                }}">
+                @setion-change="${(e) => {this.autoSceneSwitchEnabled = e.target.enabled;}}">
 
                 <span>Scene: </span>
                 <select id="autoSwitchSceneSelect" ?disabled="${this.obsScenes.length == 0}">

@@ -41,6 +41,9 @@ export default class Timer extends DockTab {
                     <a class="drag-and-button" href="../overlay/title.html?layer-name=Title%20Overlay&layer-width=1920&layer-height=1080">
                         Title Overlay
                     </a>
+                    <a class="drag-and-button" href="../overlay/subathon.html?layer-name=Subathon%20Overlay&layer-width=1920&layer-height=1080">
+                        Subathon Overlay
+                    </a>
                 </div>
             </div>
         `;

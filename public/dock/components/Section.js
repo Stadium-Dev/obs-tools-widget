@@ -7,7 +7,6 @@ export default class DockTabSection extends LitElement {
         return css`
             :host {
                 margin: 0px;
-                border: 1px solid rgb(41, 41, 41);
                 position: relative;
                 display: block;
             }

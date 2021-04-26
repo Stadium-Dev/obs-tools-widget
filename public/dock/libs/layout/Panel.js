@@ -383,6 +383,10 @@ const requiredStyles = `
 	[drag-over] gyro-group > * {
 		pointer-events: none;
 	}
+
+	gyro-group > * {
+		height: 100%;
+	}
 `;
 
 const layoutStyle = document.createElement('style');

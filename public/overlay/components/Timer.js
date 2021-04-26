@@ -5,58 +5,27 @@ export default class OverlayHud extends LitElement {
 
     static get styles() {
         return css`
-
             :host {
                 display: block;
                 position: fixed;
-                top: 0;
-                left: 50%;
-                transform: translate(-50%, 0);
-                width: 400px;
-                height: 45px;
+                bottom: 80px;
+                left: 80px;
                 display: flex;
                 justify-content: center;
                 align-items: flex-end;
                 color: #eee;
                 font-family: 'Lato';
-                font-size: 28px;
-            }
-            .container::after,
-            .container::before {
-                content: "";
-                z-index: 100;
-                display: block;
-                position: absolute;
-                top: 0px;
-                left: 0px;
-                height: 138%;
-                width: 1px;
-                background: #eee;
-                transform-origin: 0 0;
-                transform: rotate(-41deg) translateX(-0.5px);
-                opacity: 0.9;
-            }
-            .container::after {
-                left: auto;
-                right: 0px;
-                transform: rotate(41deg);
-            }
-            .background {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                clip-path: polygon(0 0, 100% 0, calc(100% - 40px) 100%, 40px 100%);
-                background: linear-gradient(180deg, hsl(0deg 0% 0% / 50%), hsl(0deg 0% 0% / 0%));
-                z-index: -1;
+                font-size: 48px;
             }
             .timer {
                 letter-spacing: 2px;
                 display: flex;
+                align-items: center;
             }
             .timer .prefix {
-                margin-right: 15px;
+                margin-top: 2px;
+                font-size: 32px;
+                margin-right: 20px;
             }
             .timer .seperator {
                 margin: 0 4px;
@@ -163,11 +132,8 @@ export default class OverlayHud extends LitElement {
 
         return html`
             <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400&display=swap" rel="stylesheet">
-            <div class="container">
-                <div class="background"></div>
-            </div>
             <div class="timer">
-                <span class="prefix">T-</span>
+                <span class="prefix">Startet in</span>
                 <span>${hours.toFixed(0).padStart(2, "0")}</span>
                 <span class="seperator">:</span>
                 <span>${minutes.toFixed(0).padStart(2, "0")}</span>
