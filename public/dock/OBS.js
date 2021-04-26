@@ -129,6 +129,7 @@ export default class OBS {
     }
 
     static setCurrentScene(sceneName) {
+        console.log(sceneName);
         return obs.send('SetCurrentScene', { 'scene-name': sceneName });
     }
 

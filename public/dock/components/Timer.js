@@ -2,6 +2,7 @@ import { css, html } from 'https://cdn.pika.dev/lit-element';
 import Config from '../Config.js';
 import OBS from '../OBS.js';
 import DockTab from './DockTab.js';
+import './Section.js';
 
 if(!Config.get('start-time')) {
     Config.set('start-time', 60 * 60 * 12); // seconds
@@ -46,18 +47,14 @@ export default class Timer extends DockTab {
                 margin-top: 5px;
                 opacity: 0.75;
             }
-            input[type="checkbox"] {
-                width: auto;
-                margin-right: 10px;
-            }
-            .row {
-                display: flex;
-            }
             .material-icons.inline {
                 font-size: 18px;
                 vertical-align: middle;
                 margin-top: -4px;
                 margin-right: 2px;
+            }
+            select {
+                margin-left: 5px;
             }
         `;
     }
@@ -67,7 +64,7 @@ export default class Timer extends DockTab {
 
         this.time = 60 * 60 * 12;
         this.elapsedTime = 0;
-        this.autoSceneSwitchEnabled = Config.get('timer-scene-switch') || false;
+        this.autoSceneSwitchEnabled = false;
 
         if(Config.get('elapsed-time') != null) {
             this.elapsedTime = Config.get('elapsed-time');
@@ -154,7 +151,7 @@ export default class Timer extends DockTab {
     }
 
     onTimerEnd() {
-        if(Config.get('timer-scene-switch')) {
+        if(this.autoSceneSwitchEnabled) {
             const selectEle = this.shadowRoot.querySelector('#autoSwitchSceneSelect');
             const sceneToSwitchTo = selectEle.value;
             if(sceneToSwitchTo && sceneToSwitchTo !== "none") {
@@ -205,11 +202,23 @@ export default class Timer extends DockTab {
 
             <div class="section" section-title="Start Time">
                 <div class="section-content">
-                    <input id="startTimeH" @change="${e => updateStartTime()}" type="number" value="${hours}"/>h
-                    <input id="startTimeM" @change="${e => updateStartTime()}" type="number" value="${minutes}"/>m
-                    <input id="startTimeS" @change="${e => updateStartTime()}" type="number" value="${seconds}"/>s
+                    <input id="startTimeH" min="0" @change="${e => updateStartTime()}" type="number" value="${hours}"/>h
+                    <input id="startTimeM" min="0" @change="${e => updateStartTime()}" type="number" value="${minutes}"/>m
+                    <input id="startTimeS" min="0" @change="${e => updateStartTime()}" type="number" value="${seconds}"/>s
                 </div>
             </div>
+            <obs-dock-tab-section optional section-title="Automatic scene switch"
+                @setion-change="${(e) => {
+                    this.autoSceneSwitchEnabled = e.target.enabled;
+                }}">
+
+                <span>Scene: </span>
+                <select id="autoSwitchSceneSelect" ?disabled="${this.obsScenes.length == 0}">
+                    ${this.obsScenes.length ? this.obsScenes.map(({ name }) => {
+                        return html`<option value="${name}">${name}</option>`;
+                    }) : html`<option value="none">No Scenes Available</option>`}
+                </select>
+            </obs-dock-tab-section>
             <div class="section" section-title="Timer">
                 <div class="section-content">
                     <div class="timer-clock">
@@ -241,27 +250,6 @@ export default class Timer extends DockTab {
                         <button @click="${() => this.addMinute()}" class="secondary">+1 m</button>
                         <button @click="${() => this.subtractMinute()}" class="secondary">-1 m</button>
                     </div> 
-                </div>
-            </div>
-            <div class="section" section-title="Automatic scene switch">
-                <div class="section-content">
-                    <div class="row">  
-                        <input @change="${(e) => {
-                            this.autoSceneSwitchEnabled = e.target.checked;
-                            Config.set('timer-scene-switch', e.target.checked);
-                        }}" 
-                            id="autoSceneSwitch" 
-                            type="checkbox" 
-                            ?checked="${this.autoSceneSwitchEnabled}"/>
-
-                        <label for="autoSceneSwitch">Enable</label>  
-                    </div>
-                    <span>Scene:</span>
-                    <select id="autoSwitchSceneSelect" ?disabled="${this.obsScenes.length == 0 || !this.autoSceneSwitchEnabled}">
-                        ${this.obsScenes.length ? this.obsScenes.map(({ name }) => {
-                            return html`<option value="${name}">${name}</option>`;
-                        }) : html`<option value="none">No Scenes Available</option>`}
-                    </select>
                 </div>
             </div>
         `;
