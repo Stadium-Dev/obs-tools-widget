@@ -12,7 +12,7 @@ export default class Panel extends HTMLElement {
 					--tab-font-color: #eeeeee;
 					--split-bar-color: white;
 					--split-bar-color-hover: rgba(255, 255, 255, 0.2);
-					--layout-grid-gap: 0px;
+					--layout-grid-gap: 2px;
 
 					position: relative;
 					overflow: hidden;
