@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #333;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            color: #eee;
+        }
+    </style>
+</head>
+
+<body>
+    <script type="module">
+        import Config from '../dock/Config.js';
+
+        async function getMediaDevies(deviceType = "audiooutput") {
+            const devices = [];
+            return navigator.mediaDevices.getUserMedia({ audio: true }).then(() => {
+                return navigator.mediaDevices.enumerateDevices().then(d => {
+                    for (let device of d) {
+                        if (device.kind == deviceType) {
+                            devices.push(device);
+                        }
+                    }
+                    return devices;
+                }).catch(console.error);
+            }).catch(console.error);
+        }
+
+        getMediaDevies("audioinput").then(async inputDevices => {
+            const device = inputDevices.find(dev => dev.label.match('CABLE'));
+            const canv = await createAnalyzer(device);
+            document.body.appendChild(canv);
+        })
+
+        async function createAnalyzer(device) {
+            const canvas = document.createElement('canvas');
+
+            canvas.width = 640;
+
+            const canvasCtx = canvas.getContext("2d");
+            const audioContext = new AudioContext();
+
+            console.log(device);
+
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    deviceId: device.deviceId,
+                    sampleSize: 24,
+                    sampleRate: 48000,
+                    noiseSuppression: false,
+                    autoGainControl: false,
+                    echoCancellation: false
+                }
+            }).catch(err => {
+                alert('Error getting input device stream');
+            });
+
+            const audioSource = audioContext.createMediaStreamSource(stream);
+            const analyser = audioContext.createAnalyser();
+            const gain = audioContext.createGain();
+
+            gain.gain.setValueAtTime(50, audioContext.currentTime);
+
+            audioSource.connect(gain);
+            gain.connect(analyser);
+
+            analyser.fftSize = 32;
+
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Float32Array(bufferLength);
+
+            let buffer = new Array(100);
+
+            setInterval(() => {
+                analyser.getFloatTimeDomainData(dataArray);
+              
+                const value = Math.max(...dataArray);
+                buffer.unshift(value);
+
+                if(buffer.length > 100) {
+                    buffer.pop();
+                }
+            }, 1000 / 30);
+
+            function draw() {
+                canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+
+                const sliceWidth = 3;
+                var x = 0;
+
+                for (var i = 0; i < buffer.length; i+=1) {
+                    const v = buffer[i] * 600;
+
+                    const o = x / canvas.width;
+                    canvasCtx.globalAlpha = (1 - o) * o;
+
+                    canvasCtx.fillStyle = "#eee";
+                    canvasCtx.fillRect(x, (canvas.height / 2) + (v / 2), sliceWidth, -v);
+
+                    x += sliceWidth + 8;
+                }
+
+                requestAnimationFrame(draw);
+            }
+            draw();
+
+            return canvas;
+        }
+    </script>
+</body>
+
+</html>

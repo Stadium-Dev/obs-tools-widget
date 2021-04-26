@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script type="module" src="./components/HUD.js"></script>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        .timer-action {
+            position: absolute;
+            top: 120%;
+            right: 0;
+            font-size: 18px;
+            z-index: -1;
+        }
+        .show-animation {
+            animation: show .4s ease both;
+        }
+        .hide-animation {
+            animation: hide .2s ease both;
+        }
+        @keyframes hide {
+            from {
+                opacity: 1;
+                transform: translate(0, 0);
+            }
+            to {
+                opacity: 0;
+                transform: translate(0, -20px);
+            }
+        }
+        @keyframes show {
+            from {
+                opacity: 0;
+                transform: translate(0, 50px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(0, 0);
+            }
+        }
+        .background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <obs-overlay-hud></obs-overlay-hud>
+    <img class="background" src="./cover-border.svg" />
+    <script>
+        const timerHud = document.querySelector('obs-overlay-hud');
+
+        const bc = new BroadcastChannel('obs-tools-widget-com');
+        bc.onmessage = ev => {
+            const data = ev.data;
+            const type = data.type;
+
+            if(type == "timer") {
+                const time = data.time;
+                const playstate = data.playstate;
+                timerHud.setTime(time);
+                if(playstate == 0) {
+                    timerHud.pauseTimer();
+                } else if(playstate == 1) {
+                    timerHud.playTimer();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
