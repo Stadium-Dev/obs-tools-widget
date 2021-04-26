@@ -49,14 +49,14 @@ export default class Counter extends DockTab {
             :host {
                 height: 100%;
             }
-            obs-dock-tab-section {
-                height: 100%;
+            obs-dock-tab-section.full {
+                height: 300px;
             }
             .history {
                 margin-top: 15px;
                 width: calc(100% - 20px);
                 position: absolute;
-                top: 85px;
+                top: 20px;
                 bottom: 10px;
                 overflow: auto;
                 border: 1px solid rgb(54, 54, 54);
@@ -102,15 +102,6 @@ export default class Counter extends DockTab {
         super.connectedCallback();
     }
 
-    addSub() {
-        subs++;
-        Config.set('sub-counter', subs);
-    }
-    subtractSub() {
-        subs--;
-        Config.set('sub-counter', subs);
-    }
-
     removeHistoryEntry(entry) {
         const history = Config.get('event-history');
         history.splice(history.indexOf(entry), 1);
@@ -120,19 +111,19 @@ export default class Counter extends DockTab {
     render() {
         const history = Config.get('event-history');
         return html`
-            <obs-dock-tab-section section-title="Activity">
+            <obs-dock-tab-section section-title="Subathon Counters">
                 <div class="inputs">
                     <div>
                         <label>Subs</label>
                         <input type="number" value="${subs}" disabled="true"/>
-                        <button @click="${e => {this.addSub()}}">+1</button>
-                        <button @click="${e => {this.subtractSub()}}">-1</button>
                     </div>
                     <div>
                         <label>Donations</label>
                         <input type="number" value="${donated}" disabled="true"/>€
                     </div>
                 </div>
+            </obs-dock-tab-section>
+            <obs-dock-tab-section class="full" section-title="Activity">
                 <div class="history">
                     ${history.map(entry => {
                         if(entry.type == "resub" || entry.type == "subscription") {

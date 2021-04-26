@@ -215,27 +215,27 @@ export default class Timer extends DockTab {
 
     render() {
         const startTime = Config.get('start-time');
-        const hours = Math.round(startTime / 60 / 60);
-        const minutes = Math.round(startTime / 60) % 60;
-        const seconds = Math.round(startTime) % 60;
+        const hours = Math.floor(startTime / 60 / 60);
+        const minutes = Math.floor(startTime / 60) % 60;
+        const seconds = Math.floor(startTime) % 60;
 
-        const elapsedHours = Math.round(this.elapsedTime / 60 / 60);
-        const elapsedMinutes = Math.round(this.elapsedTime / 60) % 60;
-        const elapsedSeconds = Math.round(this.elapsedTime) % 60;
+        const elapsedHours = Math.round((this.elapsedTime + 0.5) / 60 / 60);
+        const elapsedMinutes = Math.round((this.elapsedTime + 0.5) / 60) % 60;
+        const elapsedSeconds = Math.round((this.elapsedTime + 0.5)) % 60;
 
-        const timerHours = Math.round(this.time / 60 / 60);
-        const timerMinutes = Math.round(this.time / 60) % 60;
-        const timerSeconds = Math.round(this.time) % 60;
+        const timerHours = Math.floor(this.time / 60 / 60);
+        const timerMinutes = Math.floor(this.time / 60) % 60;
+        const timerSeconds = Math.floor(this.time) % 60;
 
         const subAddTime = Config.get('sub-add-time');
-        const subHours = Math.round(subAddTime / 60 / 60);
-        const subMinutes = Math.round(subAddTime / 60) % 60;
-        const subSeconds = Math.round(subAddTime) % 60;
+        const subHours = Math.floor(subAddTime / 60 / 60);
+        const subMinutes = Math.floor(subAddTime / 60) % 60;
+        const subSeconds = Math.floor(subAddTime) % 60;
 
         const donoAddTime = Config.get('donation-add-time');
-        const donoHours = Math.round(donoAddTime / 60 / 60);
-        const donoMinutes = Math.round(donoAddTime / 60) % 60;
-        const donoSeconds = Math.round(donoAddTime) % 60;
+        const donoHours = Math.floor(donoAddTime / 60 / 60);
+        const donoMinutes = Math.floor(donoAddTime / 60) % 60;
+        const donoSeconds = Math.floor(donoAddTime) % 60;
 
         const updateStartTime = () => {
             const h = this.shadowRoot.querySelector('#startTimeH').valueAsNumber, 
