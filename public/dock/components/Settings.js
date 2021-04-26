@@ -55,40 +55,46 @@ export default class Settings extends DockTab {
         const obsWebSocketPassword = Config.get('obs-websocket-password') || "password";
 
         return html`
-        
-            <div class="section">
-                <div class="section-content">
-                    <div>
-                        <label>Streamlabs Websocket Token</label>
-                        <input value="${Config.get('streamlabs-websocket-token')}" 
-                            @change="${e => this.socketTokenChange(e.target)}" 
-                            class="full"
-                            type="password" 
-                            placeholder="Websocket Token"/>
-                        <button @click="${e => this.showToken(e.target)}">show</button>
-                    </div>
-                    <br/>
-                    <div>
-                        <label>OBS WebSocket</label>
-                        <span class="label">IP:Port</span><input value="${obsWebSocketPort}" 
-                            @change="${e => {
-                                Config.set('obs-websocket-port', e.target.value);
-                            }}" 
-                            placeholder="Port"/><br/>
-                        <span class="label">Password</span><input value="${obsWebSocketPassword}" 
-                            type="password"
-                            @change="${e => {
-                                Config.set('obs-websocket-password', e.target.value);
-                            }}" 
-                            placeholder="Password"/>
-                    </div>
-                    <div style="margin-top: 20px;">
-                        <span class="label" style="width: auto;">
-                            Use the flag "--use-fake-ui-for-media-stream" for more features.
-                        </span>
-                    </div>
+            <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+            
+            <obs-dock-tab-section section-title="Settings">
+                <div>
+                    <label>Streamlabs Websocket Token</label>
+                    <input value="${Config.get('streamlabs-websocket-token')}" 
+                        @change="${e => this.socketTokenChange(e.target)}" 
+                        class="full"
+                        type="password" 
+                        placeholder="Websocket Token"/>
+                    <button @click="${e => this.showToken(e.target)}">show</button>
                 </div>
-            </div>
+                <br/>
+                <div>
+                    <label>OBS WebSocket</label>
+                    <span class="label">IP:Port</span><input value="${obsWebSocketPort}" 
+                        @change="${e => {
+                            Config.set('obs-websocket-port', e.target.value);
+                        }}" 
+                        placeholder="Port"/><br/>
+                    <span class="label">Password</span><input value="${obsWebSocketPassword}" 
+                        type="password"
+                        @change="${e => {
+                            Config.set('obs-websocket-password', e.target.value);
+                        }}" 
+                        placeholder="Password"/>
+                </div>
+                <div style="margin: 10px 0;">
+                    <span class="label" style="width: auto;">
+                        Install obs-websocket plugin for automation features.
+                    </span>
+                </div>
+            
+            </obs-dock-tab-section>
+
+            <obs-dock-tab-section section-title="Panic Button">
+                <button @click="${e => location.reload()}">
+                    Reload Tool
+                </button>
+            </obs-dock-tab-section>
         `;
     }
 }

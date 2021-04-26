@@ -200,25 +200,6 @@ export default class Timer extends DockTab {
         return html`
             <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-            <div class="section" section-title="Start Time">
-                <div class="section-content">
-                    <input id="startTimeH" min="0" @change="${e => updateStartTime()}" type="number" value="${hours}"/>h
-                    <input id="startTimeM" min="0" @change="${e => updateStartTime()}" type="number" value="${minutes}"/>m
-                    <input id="startTimeS" min="0" @change="${e => updateStartTime()}" type="number" value="${seconds}"/>s
-                </div>
-            </div>
-            <obs-dock-tab-section optional section-title="Automatic scene switch"
-                @setion-change="${(e) => {
-                    this.autoSceneSwitchEnabled = e.target.enabled;
-                }}">
-
-                <span>Scene: </span>
-                <select id="autoSwitchSceneSelect" ?disabled="${this.obsScenes.length == 0}">
-                    ${this.obsScenes.length ? this.obsScenes.map(({ name }) => {
-                        return html`<option value="${name}">${name}</option>`;
-                    }) : html`<option value="none">No Scenes Available</option>`}
-                </select>
-            </obs-dock-tab-section>
             <div class="section" section-title="Timer">
                 <div class="section-content">
                     <div class="timer-clock">
@@ -252,6 +233,25 @@ export default class Timer extends DockTab {
                     </div> 
                 </div>
             </div>
+            <div class="section" section-title="Start Time">
+                <div class="section-content">
+                    <input id="startTimeH" min="0" @change="${e => updateStartTime()}" type="number" value="${hours}"/>h
+                    <input id="startTimeM" min="0" @change="${e => updateStartTime()}" type="number" value="${minutes}"/>m
+                    <input id="startTimeS" min="0" @change="${e => updateStartTime()}" type="number" value="${seconds}"/>s
+                </div>
+            </div>
+            <obs-dock-tab-section optional section-title="Automatic scene switch"
+                @setion-change="${(e) => {
+                    this.autoSceneSwitchEnabled = e.target.enabled;
+                }}">
+
+                <span>Scene: </span>
+                <select id="autoSwitchSceneSelect" ?disabled="${this.obsScenes.length == 0}">
+                    ${this.obsScenes.length ? this.obsScenes.map(({ name }) => {
+                        return html`<option value="${name}">${name}</option>`;
+                    }) : html`<option value="none">No Scenes Available</option>`}
+                </select>
+            </obs-dock-tab-section>
         `;
     }
 }

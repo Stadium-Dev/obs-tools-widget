@@ -9,6 +9,7 @@ export default class DockTabSection extends LitElement {
                 margin: 0px;
                 border: 1px solid rgb(41, 41, 41);
                 position: relative;
+                display: block;
             }
             .title {
                 line-height: 100%;
@@ -23,12 +24,12 @@ export default class DockTabSection extends LitElement {
                 color: rgb(152 152 152);
                 font-weight: 400;
                 background: rgb(41, 41, 41);
-                padding: 4px 7px 5px 7px;
+                padding: 5px 7px 5px 7px;
                 box-sizing: border-box;
                 margin-bottom: 1px;
             }
-            .switch {
-
+            .switch input {
+                margin: 0;
             }
             .content {
                 display: block;
