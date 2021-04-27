@@ -47,7 +47,7 @@
     <script>
         const timerHud = document.querySelector('obs-overlay-hud');
 
-        const bc = new BroadcastChannel('subathon-overlay-com');
+        const bc = new BroadcastChannel('obs-tools-widget-com');
         bc.onmessage = ev => {
             const data = ev.data;
             const type = data.type;
