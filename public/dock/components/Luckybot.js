@@ -9,14 +9,10 @@ export default class Luckybot extends DockTab {
     static get styles() {
         return css`
             ${super.styles}
+            iframe {
+                border: none;
+            }
         `;
-    }
-
-    skipTTS() {
-        ttsBc.postMessage({ 
-            type: 'tts', 
-            skip: true,
-        });
     }
 
     render() {
@@ -24,7 +20,7 @@ export default class Luckybot extends DockTab {
             <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
             
             <obs-dock-tab-section section-title="TTS">
-                <button @click="${e => this.skipTTS()}">Skip Current TTS</button>
+                <iframe src="https://1uckybot.luckydye.de/overlay/control-panel.html" />
             </obs-dock-tab-section>
         `;
     }
