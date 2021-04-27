@@ -9,7 +9,7 @@ export default class Group extends Column {
 	static get template() {
 		const groupTemplate = document.createElement("template");
 		groupTemplate.innerHTML = `
-			<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+			<link href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined" rel="stylesheet">
 			<style>
 				:host {
 					position: relative;

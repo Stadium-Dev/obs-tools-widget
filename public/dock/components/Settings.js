@@ -28,12 +28,8 @@ export default class Settings extends DockTab {
         super.connectedCallback();
     }
 
-    socketTokenChange(input) {
-        Config.set('streamlabs-websocket-token', input.value);
-    }
-
-    showToken(btn) {
-        const input = this.shadowRoot.querySelector('input');
+    showToken(id, btn) {
+        const input = this.shadowRoot.querySelector('#' + id);
         input.type = "text";
         let timer = 5;
         btn.innerHTML = timer;
@@ -61,11 +57,23 @@ export default class Settings extends DockTab {
                 <div>
                     <label>Streamlabs Websocket Token</label>
                     <input value="${Config.get('streamlabs-websocket-token')}" 
-                        @change="${e => this.socketTokenChange(e.target)}" 
+                        id="streamlabsWebsocketToken"
+                        @change="${e => Config.set('streamlabs-websocket-token', e.target.value)}" 
                         class="full"
                         type="password" 
                         placeholder="Websocket Token"/>
-                    <button @click="${e => this.showToken(e.target)}">show</button>
+                    <button @click="${e => this.showToken("streamlabsWebsocketToken", e.target)}">show</button>
+                </div>
+                <br/>
+                <div>
+                    <label>1uckybot Access Token</label>
+                    <input value="${Config.get('1uckybot-websocket-token')}" 
+                        id="luckybotWebsocketToken"
+                        @change="${e => Config.set('1uckybot-websocket-token', e.target.value)}" 
+                        class="full"
+                        type="password" 
+                        placeholder="1uckybot Token"/>
+                    <button @click="${e => this.showToken("luckybotWebsocketToken", e.target)}">show</button>
                 </div>
                 <br/>
                 <div>
