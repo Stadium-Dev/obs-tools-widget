@@ -182,7 +182,7 @@ export default class VideoAssist extends DockTab {
 //     </obs-dock-tab-section>
     render() {
         return html`
-            <obs-dock-tab-section section-title="Histogram RGB">
+            <obs-dock-tab-section section-title="Histogram">
                 ${this.histogram}
             </obs-dock-tab-section>
             <obs-dock-tab-section section-title="Waveform">
