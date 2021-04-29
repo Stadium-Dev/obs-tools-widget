@@ -9,6 +9,7 @@ export default class DockTabSection extends LitElement {
                 margin: 0px;
                 position: relative;
                 display: block;
+                --content-padding: 10px;
             }
             .title {
                 line-height: 100%;
@@ -32,7 +33,7 @@ export default class DockTabSection extends LitElement {
             }
             .content {
                 display: block;
-                padding: 10px;
+                padding: var(--content-padding);
             }
             .content:not([enabled]) {
                 display: none;
