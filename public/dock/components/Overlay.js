@@ -1,5 +1,10 @@
-import { css, html } from 'https://cdn.pika.dev/lit-element';
+import { css, html } from 'https://cdn.skypack.dev/lit-element@2.4.0';
 import DockTab from './DockTab.js';
+
+function elementUsed(id) {
+    const ele = document.querySelector(`${id}`);
+    return ele != null && ele.style.display !== "none";
+}
 
 export default class Timer extends DockTab {
 
@@ -38,9 +43,11 @@ export default class Timer extends DockTab {
                     <a class="drag-and-button" href="../overlay/timer.html?layer-name=Timer%20Overlay&layer-width=1920&layer-height=1080">
                         Timer Overlay
                     </a>
-                    <a class="drag-and-button" href="../overlay/title.html?layer-name=Title%20Overlay&layer-width=1920&layer-height=1080">
-                        Title Overlay
-                    </a>
+                    ${!elementUsed('obs-tools-title') ? `` : html`
+                        <a class="drag-and-button" href="../overlay/title.html?layer-name=Title%20Overlay&layer-width=1920&layer-height=1080">
+                            Title Overlay
+                        </a>
+                    `}
                     <a class="drag-and-button" href="../overlay/subathon.html?layer-name=Subathon%20Overlay&layer-width=1920&layer-height=1080">
                         Subathon Overlay
                     </a>

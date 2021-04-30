@@ -1,5 +1,9 @@
 import Column from './Column.js';
 
+function componentIsActive(component) {
+	return !component.hidden;
+}
+
 export default class Group extends Column {
 
 	static get observedAttributes() {
@@ -171,6 +175,19 @@ export default class Group extends Column {
 		this.shadowRoot.appendChild(this.shadowSlot);
 
 		this.initializeDragAndDropHandlers();
+
+		const observer = new MutationObserver(mutations => {
+			mutations.forEach(mutationRecord => {
+				this.renderTabs();
+			});    
+		});
+		
+		observer.observe(this, { 
+			attributes : true, 
+			attributeFilter : ['hidden'], 
+			childList: true,
+			subtree: true
+		});
 	}
 
 	attributeChangedCallback(name, oldValue, newValue) {
@@ -191,7 +208,7 @@ export default class Group extends Column {
 		super.slotChangeCallback(e);
 
 		this.renderTabs();
-		this.setActiveTab(this.components.length-1);
+		this.setActiveTab(0);
 	}
 
 	initializeDragAndDropHandlers() {
@@ -380,8 +397,10 @@ export default class Group extends Column {
 
 		if (components.length > 1 || this.hasAttribute('show-tabs')) {
 			for (let i = 0; i < components.length; i++) {
-				const tab = createTab(components[i]);
-				tabs.appendChild(tab);
+				if(componentIsActive(components[i])) {
+					const tab = createTab(components[i]);
+					tabs.appendChild(tab);
+				}
 			}
 		}
 
@@ -401,6 +420,10 @@ export default class Group extends Column {
 		const components = this.components;
 
 		for (let i = 0; i < components.length; i++) {
+			if(!componentIsActive(components[i])) {
+				continue;
+			}
+
 			const tab = tabs[i];
 
 			if(tab) {

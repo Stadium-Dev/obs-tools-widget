@@ -1,4 +1,4 @@
-import { css, html, LitElement } from 'https://cdn.pika.dev/lit-element';
+import { css, html, LitElement } from 'https://cdn.skypack.dev/lit-element@2.4.0';
 import Config from '../Config.js';
 
 export default class DockTabSection extends LitElement {

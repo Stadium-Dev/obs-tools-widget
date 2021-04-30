@@ -1,4 +1,4 @@
-import { css, html } from 'https://cdn.pika.dev/lit-element';
+import { css, html } from 'https://cdn.skypack.dev/lit-element@2.4.0';
 import Config from '../Config.js';
 import DockTab from './DockTab.js';
 
@@ -56,7 +56,7 @@ export default class Settings extends DockTab {
             <obs-dock-tab-section section-title="Settings">
                 <div>
                     <label>Streamlabs Websocket Token</label>
-                    <input value="${Config.get('streamlabs-websocket-token')}" 
+                    <input value="${Config.get('streamlabs-websocket-token') || ""}" 
                         id="streamlabsWebsocketToken"
                         @change="${e => Config.set('streamlabs-websocket-token', e.target.value)}" 
                         class="full"
@@ -67,7 +67,7 @@ export default class Settings extends DockTab {
                 <br/>
                 <div>
                     <label>1uckybot Access Token</label>
-                    <input value="${Config.get('1uckybot-websocket-token')}" 
+                    <input value="${Config.get('1uckybot-websocket-token') || ""}" 
                         id="luckybotWebsocketToken"
                         @change="${e => Config.set('1uckybot-websocket-token', e.target.value)}" 
                         class="full"
@@ -93,6 +93,11 @@ export default class Settings extends DockTab {
                 <div style="margin: 10px 0;">
                     <span class="label" style="width: auto;">
                         Install obs-websocket plugin for automation features.
+                    </span>
+                </div>
+                <div style="margin: 10px 0;">
+                    <span class="label" style="width: auto;">
+                        Use the flag "--use-fake-ui-for-media-stream" for Video Assist features.
                     </span>
                 </div>
             

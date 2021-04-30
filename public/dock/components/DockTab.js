@@ -1,4 +1,4 @@
-import { css, html, LitElement } from 'https://cdn.pika.dev/lit-element';
+import { css, html, LitElement } from 'https://cdn.skypack.dev/lit-element@2.4.0';
 
 export default class DockTab extends LitElement {
 
@@ -107,6 +107,22 @@ export default class DockTab extends LitElement {
                 box-sizing: border-box;
             }
         `;
+    }
+
+    get active() {
+        return this.hasAttribute('active');
+    }
+
+    get hidden() {
+        return this.hasAttribute('hidden');
+    }
+
+    set hidden(bool) {
+        if(bool) {
+            this.setAttribute('hidden', '');
+        } else {
+            this.removeAttribute('hidden');
+        }
     }
 
     constructor() {

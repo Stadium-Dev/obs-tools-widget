@@ -1,9 +1,51 @@
-import { css, html } from 'https://cdn.pika.dev/lit-element';
+import { css, html } from 'https://cdn.skypack.dev/lit-element@2.4.0';
 import Config from '../Config.js';
 import OBS from '../OBS.js';
 import Streamlabs from '../Streamlabs.js';
 import DockTab from './DockTab.js';
 import './Section.js';
+
+// Streamlabs stuff
+
+let subs = Config.get('sub-counter') || 0;
+let donated = Config.get('donation-counter') || 0;
+
+Streamlabs.on('subscription', handleSub);
+Streamlabs.on('resub', handleSub);
+Streamlabs.on('donation', handleDonation);
+
+function handleDonation(e) {
+    const amount = +e.formatted_amount.replace(/[\€|\$]/g, '');
+    donated += amount;
+    Config.set('donation-counter', donated);
+
+    const history = Config.get('event-history');
+    history.unshift(e);
+    Config.set('event-history', history);
+}
+
+function handleSub(e) {
+    subs++;
+    Config.set('sub-counter', subs);
+    
+    const history = Config.get('event-history');
+    history.unshift(e);
+    Config.set('event-history', history);
+}
+
+if(!Config.get('donation-counter')) {
+    Config.set('donation-counter', donated);
+}
+
+if(!Config.get('sub-counter')) {
+    Config.set('sub-counter', subs);
+}
+
+if(!Config.get('event-history')) {
+    Config.set('event-history', []);
+}
+
+// end
 
 if(!Config.get('start-time')) {
     Config.set('start-time', 60 * 60 * 12); // seconds
@@ -64,6 +106,33 @@ export default class Timer extends DockTab {
             }
             select {
                 margin-left: 5px;
+            }
+            .history {
+                width: 100%;
+                overflow: auto;
+                height: 120px;
+                border: 1px solid rgb(54, 54, 54);
+                background: rgb(26, 26, 26);
+                grid-column: 1 / span 2;
+            }
+            .history-entry {
+                font-size: 12px;
+                padding: 7px 10px;
+                margin: 5px 5px 0px 5px;
+                background: #363636;
+                border-radius: 3px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .inputs {
+                display: grid;
+                grid-template-columns: auto auto;
+                grid-template-rows: auto 1fr;
+                grid-gap: 10px;
+            }
+            .inputs label {
+                display: inline;
             }
         `;
     }
@@ -166,6 +235,22 @@ export default class Timer extends DockTab {
         Streamlabs.on('subscription', handleSub);
         Streamlabs.on('resub', handleSub);
         Streamlabs.on('donation', handleDonation);
+
+        Config.on('sub-counter', () => {
+            subs = Config.get('sub-counter');
+            this.update();
+        });
+        Config.on('dono-counter', () => {
+            donated = Config.get('donation-counter');
+            this.update();
+        });
+        Config.on('event-history', () => this.update());
+    }
+
+    removeHistoryEntry(entry) {
+        const history = Config.get('event-history');
+        history.splice(history.indexOf(entry), 1);
+        Config.set('event-history', history);
     }
 
     updateOverlayTimer() {
@@ -264,6 +349,8 @@ export default class Timer extends DockTab {
             Config.set('donation-add-time', time);
         }
 
+        const history = Config.get('event-history');
+
         return html`
             <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
@@ -323,6 +410,40 @@ export default class Timer extends DockTab {
                     <input id="donoTimeH" @change="${e => updateDonoTime()}" type="number" value="${donoHours}"/>h
                     <input id="donoTimeM" @change="${e => updateDonoTime()}" type="number" value="${donoMinutes}"/>m
                     <input id="donoTimeS" @change="${e => updateDonoTime()}" type="number" value="${donoSeconds}"/>s
+                </div>
+                <br/>
+                <div>
+                    <div class="inputs">
+                        <div>
+                            <label>Subs</label>
+                            <input type="number" value="${subs}" disabled="true"/>
+                        </div>
+                        <div>
+                            <label>Donations</label>
+                            <input type="number" value="${donated}" disabled="true"/>€
+                        </div>
+                        <div class="history">
+                            ${history.map(entry => {
+                                if(entry.type == "resub" || entry.type == "subscription") {
+                                    return html`
+                                        <div class="history-entry">
+                                            <div>${entry.name} subbed.</div>
+                                            <button @click="${e => this.removeHistoryEntry(entry)}">X</button>
+                                        </div>
+                                    `;
+                                }
+                                if(entry.type == "donation") {
+                                    return html`
+                                        <div class="history-entry">
+                                            <div>${entry.name} donated ${entry.formatted_amount}.</div>
+                                            <button @click="${e => this.removeHistoryEntry(entry)}">X</button>
+                                        </div>
+                                    `;
+                                }
+                            })}
+                        </div>
+                    </div>
+
                 </div>
             </obs-dock-tab-section>
             
