@@ -1,6 +1,7 @@
 import { css, html } from 'https://cdn.skypack.dev/lit-element@2.4.0';
 import Config from '../Config.js';
 import DockTab from './DockTab.js';
+import Twitch from '../services/Twitch.js';
 
 export default class Settings extends DockTab {
 
@@ -21,11 +22,7 @@ export default class Settings extends DockTab {
 
     constructor() {
         super();
-
-    }
-
-    connectedCallback() {
-        super.connectedCallback();
+        Twitch.loadAuthentication();
     }
 
     showToken(id, btn) {
@@ -101,6 +98,23 @@ export default class Settings extends DockTab {
                     </span>
                 </div>
             
+            </obs-dock-tab-section>
+
+            <obs-dock-tab-section section-title="Connect to Twitch">
+                ${Twitch.isAuthenticated ? 
+                    html`
+                        <span>Logged in as ${Twitch.userInfo.preferred_username}</span>
+                    ` : 
+                    html`
+                        <button @click="${e => Twitch.authenticate().then(async params => {
+                            if(params) {
+                                this.update();
+                            }
+                        })}">
+                            Login with Twitch
+                        </button>
+                    `
+                }
             </obs-dock-tab-section>
 
             <obs-dock-tab-section section-title="Panic Button">
