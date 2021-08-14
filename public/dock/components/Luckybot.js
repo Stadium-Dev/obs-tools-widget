@@ -12,7 +12,7 @@ function disbleMediaServerControl() {
 function enableMediaServerControl() {
     const host = Config.get('media-server-url') || "localhost:8000";
 
-    mediaServerWs = new WebSocket((location.protocol == "http:" ? "ws:" : "wss:") + '//' + host);
+    mediaServerWs = new WebSocket('ws://' + host);
 
     mediaServerWs.addEventListener('message', msg => {
         const data = JSON.parse(msg.data);
