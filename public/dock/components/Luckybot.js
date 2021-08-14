@@ -10,9 +10,9 @@ function disbleMediaServerControl() {
     }
 }
 function enableMediaServerControl() {
-    const host = Config.get('media-server-url') || "localhost:8000";
+    const host = Config.get('media-server-url') || "ws://localhost:8000";
 
-    mediaServerWs = new WebSocket('ws://' + host);
+    mediaServerWs = new WebSocket(host);
 
     mediaServerWs.addEventListener('message', msg => {
         const data = JSON.parse(msg.data);
@@ -50,10 +50,6 @@ let getSelectedStandbyScene = () => {
     return select.value;
 };
 
-if(Config.get("section-remote-stream controls-enabled")) {
-   enableMediaServerControl(); 
-}
-
 export default class Luckybot extends DockTab {
 
     static get styles() {
@@ -75,6 +71,14 @@ export default class Luckybot extends DockTab {
                 this.update();
             })
         })
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        
+        if(Config.get("section-remote-stream controls-enabled")) {
+            enableMediaServerControl(); 
+        }
     }
 
     render() {
