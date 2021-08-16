@@ -1,5 +1,6 @@
 import { css, html, LitElement } from 'https://cdn.skypack.dev/lit-element@2.4.0';
 import Config from '../Config.js';
+import './Switch.js';
 
 export default class DockTabSection extends LitElement {
 
@@ -15,6 +16,7 @@ export default class DockTabSection extends LitElement {
                 line-height: 100%;
             }
             .header {
+                border-top: 1px solid #383838;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
@@ -91,7 +93,7 @@ export default class DockTabSection extends LitElement {
                 <div class="title">${this.sectionTitle}</div>
                 ${!this.optional ? '' : html`
                     <div class="switch">
-                        <input ?checked="${this.enabled}" type="checkbox" @change="${e => updateEnabled(e.target.checked)}"/>
+                        <input-switch ?checked="${this.enabled}" type="checkbox" @change="${e => updateEnabled(e.target.checked)}"></input-switch>
                     </div>
                 `}
             </div>

@@ -18,6 +18,7 @@ export default class DockTab extends LitElement {
                 outline: none;
                 color: #eee;
                 padding: 5px 8px;
+                font-size: 13px;
             }
             [disabled] {
                 opacity: 0.75;
@@ -88,7 +89,8 @@ export default class DockTab extends LitElement {
             }
             .section {
                 margin: 0px;
-                border: 1px solid rgb(41, 41, 41);
+                border-left: 1px solid rgb(41, 41, 41);
+                border-right: 1px solid rgb(41, 41, 41);
                 position: relative;
             }
             .section-content {
@@ -105,6 +107,8 @@ export default class DockTab extends LitElement {
                 background: rgb(41, 41, 41);
                 padding: 4px 7px 5px 7px;
                 box-sizing: border-box;
+                line-height: 18px;
+                border-top: 1px solid #383838;
             }
         `;
     }

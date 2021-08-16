@@ -96,7 +96,7 @@ export default class Group extends Column {
 				slot {
 					display: block;
 					height: 100%;
-					overflow: auto;
+					overflow-y: scroll;
 				}
 
 				:host([drag-over]) {
