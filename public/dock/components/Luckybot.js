@@ -81,12 +81,41 @@ export default class Luckybot extends DockTab {
         }
     }
 
+    showToken(id, btn) {
+        const input = this.shadowRoot.querySelector('#' + id);
+        input.type = "text";
+        let timer = 5;
+        btn.innerHTML = timer;
+        btn.disabled = true;
+        const int = setInterval(() => {
+            timer--;
+            btn.innerHTML = timer;
+            if(timer == 0) {
+                btn.innerHTML = "show";
+                input.type = "password";
+                clearInterval(int);
+                btn.disabled = false;
+            }
+        }, 1000);
+    }
+
     render() {
         const mediaServerUrl = Config.get('media-server-url') || "localhost:8000";
 
         return html`
             <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
             
+            <obs-dock-tab-section section-title="Token">
+                <label>1uckybot Access Token</label>
+                <input value="${Config.get('1uckybot-websocket-token') || ""}" 
+                    id="luckybotWebsocketToken"
+                    @change="${e => Config.set('1uckybot-websocket-token', e.target.value)}" 
+                    class="full"
+                    type="password" 
+                    placeholder="1uckybot Token"/>
+                <button @click="${e => this.showToken("luckybotWebsocketToken", e.target)}">show</button>
+            </obs-dock-tab-section>
+
             <obs-dock-tab-section optional section-title="Remote Stream Controls" @setion-change="${e => {
                 if(e.target.enabled) {
                     enableMediaServerControl()

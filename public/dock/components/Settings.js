@@ -49,30 +49,19 @@ export default class Settings extends DockTab {
 
         return html`
             <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-            
-            <obs-dock-tab-section section-title="Settings">
-                <div>
-                    <label>Streamlabs Websocket Token</label>
-                    <input value="${Config.get('streamlabs-websocket-token') || ""}" 
-                        id="streamlabsWebsocketToken"
-                        @change="${e => Config.set('streamlabs-websocket-token', e.target.value)}" 
-                        class="full"
-                        type="password" 
-                        placeholder="Websocket Token"/>
-                    <button @click="${e => this.showToken("streamlabsWebsocketToken", e.target)}">show</button>
-                </div>
-                <br/>
-                <div>
-                    <label>1uckybot Access Token</label>
-                    <input value="${Config.get('1uckybot-websocket-token') || ""}" 
-                        id="luckybotWebsocketToken"
-                        @change="${e => Config.set('1uckybot-websocket-token', e.target.value)}" 
-                        class="full"
-                        type="password" 
-                        placeholder="1uckybot Token"/>
-                    <button @click="${e => this.showToken("luckybotWebsocketToken", e.target)}">show</button>
-                </div>
-                <br/>
+
+            <obs-dock-tab-section section-title="Streamlabs Integration">
+                <label>Streamlabs Websocket Token</label>
+                <input value="${Config.get('streamlabs-websocket-token') || ""}" 
+                    id="streamlabsWebsocketToken"
+                    @change="${e => Config.set('streamlabs-websocket-token', e.target.value)}" 
+                    class="full"
+                    type="password" 
+                    placeholder="Websocket Token"/>
+                <button @click="${e => this.showToken("streamlabsWebsocketToken", e.target)}">show</button>
+            </obs-dock-tab-section>
+
+            <obs-dock-tab-section section-title="OBS WebSocket Integration">
                 <div>
                     <label>OBS WebSocket</label>
                     <span class="label">IP:Port</span><input value="${obsWebSocketPort}" 
@@ -92,29 +81,7 @@ export default class Settings extends DockTab {
                         Install obs-websocket plugin for automation features.
                     </span>
                 </div>
-                <div style="margin: 10px 0;">
-                    <span class="label" style="width: auto;">
-                        Use the flag "--use-fake-ui-for-media-stream" for Video Assist features.
-                    </span>
-                </div>
             
-            </obs-dock-tab-section>
-
-            <obs-dock-tab-section section-title="Connect to Twitch">
-                ${Twitch.isAuthenticated ? 
-                    html`
-                        <span>Logged in as ${Twitch.userInfo.preferred_username}</span>
-                    ` : 
-                    html`
-                        <button @click="${e => Twitch.authenticate().then(async params => {
-                            if(params) {
-                                this.update();
-                            }
-                        })}">
-                            Login with Twitch
-                        </button>
-                    `
-                }
             </obs-dock-tab-section>
 
             <obs-dock-tab-section section-title="Panic Button">
