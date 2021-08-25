@@ -40,10 +40,10 @@ export default class Timer extends DockTab {
         return html`
             <div class="section" section-title="Overlay Drag & Drop">
                 <div class="section-content">
-                    <a class="drag-and-button" href="../overlay/timer.html?layer-name=Timer%20Overlay&layer-width=1920&layer-height=1080">
+                    <a class="drag-and-button" @click="${e => e.preventDefault()}" href="../overlay/timer.html?layer-name=Timer%20Overlay&layer-width=1920&layer-height=1080">
                         Timer Overlay
                     </a>
-                    <a class="drag-and-button" href="../overlay/subathon.html?layer-name=Subathon%20Overlay&layer-width=1920&layer-height=1080">
+                    <a class="drag-and-button" @click="${e => e.preventDefault()}" href="../overlay/subathon.html?layer-name=Subathon%20Overlay&layer-width=1920&layer-height=1080">
                         Subathon Overlay
                     </a>
                 </div>

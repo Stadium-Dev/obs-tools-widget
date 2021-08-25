@@ -1,5 +1,5 @@
 // localStorage.debug = 'obs-websocket-js:*';
-import OBSWebSocket from '../lib/obs-websocket.js';
+import '../lib/obs-websocket.js';
 
 const tickrate = 1000 / 12;
 const lokalStatus = {
@@ -239,7 +239,7 @@ export default class OBS {
     static setSceneItemProperties(sceneName, sceneItem, settings) {
         return obs.send('SetSceneItemProperties', {
             'scene-name': sceneName,
-            'item': sceneItem.name,
+            'item': sceneItem,
             ...settings
         }).then(res => res);
     }

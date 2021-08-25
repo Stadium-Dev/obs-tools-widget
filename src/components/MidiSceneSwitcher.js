@@ -39,8 +39,8 @@ export default class MidiSceneSwitcher extends DockTab {
         return html`
             <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-            <obs-dock-tab-section section-title="Streamlabs Integration">
-                Testdfs
+            <obs-dock-tab-section section-title="Midi Scene Switcher">
+                Editorial list of scenes and auto detected midi buttons to switch to that scene.
             </obs-dock-tab-section>
         `;
     }

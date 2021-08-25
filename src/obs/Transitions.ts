@@ -26,14 +26,11 @@ function interpolateState(a, state1, state2) {
     }
 }
 
-async function transitionState(source, fromState, toState) {
-    const state = await OBS.getState();
-    const scenes = state.scenes;
-
+async function transitionState(scene, source, fromState, toState) {
     const oldState = fromState;
     const newState = toState;
 
-    OBS.setSceneItemProperties(scenes[0].name, source, oldState);
+    OBS.setSceneItemProperties(scene, source, oldState);
 
     let lastTick = 0;
     let t = 0;
@@ -47,7 +44,7 @@ async function transitionState(source, fromState, toState) {
             const v = Easing.easeInOutQuart(t);
 
             const interpState = interpolateState(v, oldState, newState);
-            OBS.setSceneItemProperties(scenes[0].name, source, interpState);
+            OBS.setSceneItemProperties(scene, source, interpState);
         } else if(lastTick) {
             clearInterval(int);
         }
@@ -59,15 +56,11 @@ async function transitionState(source, fromState, toState) {
 export default class Transitions {
 
     static async getState(sourceName) {
-        const state = await OBS.getState();
-        const scenes = state.scenes;
-        const props = await OBS.getSceneItemProperties({ name: sourceName });
-        console.log(JSON.stringify(props));
-        return props;
+        return OBS.getSceneItemProperties({ name: sourceName });
     }
 
-    static async transitionSource(sourceName, fromState, toState) {
-        transitionState(sourceName, fromState, toState);
+    static async transitionSource(scene, source, fromState, toState) {
+        transitionState(scene, source, fromState, toState);
     }
 
 }
