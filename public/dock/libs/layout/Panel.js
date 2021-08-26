@@ -385,7 +385,7 @@ const requiredStyles = `
 	}
 
 	gyro-group > * {
-		height: auto;
+		height: 100%;
 	}
 `;
 

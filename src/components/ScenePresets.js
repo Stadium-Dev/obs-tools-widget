@@ -2,7 +2,10 @@ import { css, html } from 'https://cdn.skypack.dev/lit-element@2.4.0';
 import Config from '../Config.js';
 import DockTab from './DockTab.js';
 import Transitions from '../obs/Transitions';
+import Easing from '../obs/Easing';
 import OBS from '../obs/OBS';
+import './FluidInput';
+import './DropdownButton.js';
 
 let presets = [];
 
@@ -52,6 +55,22 @@ export default class ScenePresets extends DockTab {
         `;
     }
 
+    constructor() {
+        super();
+
+        this.easingSelect = document.createElement('dropdown-button');
+        this.easingSelect.options = Object.keys(Easing).reverse().map(key => {
+            return { name: key, value: key }
+        });
+
+        this.transitionLengthInput = document.createElement('gyro-fluid-input');
+        this.transitionLengthInput.suffix = "s";
+        this.transitionLengthInput.value = 1;
+        this.transitionLengthInput.min = 0;
+        this.transitionLengthInput.max = 10;
+        this.transitionLengthInput.steps = 0.1;
+    }
+
     render() {
 
         return html`
@@ -63,20 +82,24 @@ export default class ScenePresets extends DockTab {
 
                 <br/>
                 <label>Transition Time:</label>
-                <input value="1" type="number" />
+                ${this.transitionLengthInput}
                 <br/>
+                <br/>
+
                 <label>Transition Curve:</label>
-                <select>
-                    <option>Ease</option>
-                </select>
+                ${this.easingSelect}
+                <br/>
                 <br/>
 
                 ${presets.map((preset, i) => {
                     return html`
                         <button @click="${async () => {
+                            const easingFunc = Easing[this.easingSelect.value.value];
+                            const length = this.transitionLengthInput.value;
+
                             for(let source of preset) {
                                 const state = await Transitions.getState(source.name);
-                                Transitions.transitionSource(source.scene, source.name, state, source);
+                                Transitions.transitionSource(source.scene, source.name, state, source, easingFunc, length);
                             }
                         }}">Load preset ${i}</button>
                     `;
