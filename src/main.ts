@@ -7,3 +7,4 @@ import "./components/MidiSceneSwitcher.js";
 import "./Streamlabs.js";
 import "./Labels.js";
 
+window.addEventListener('contextmenu', e => e.preventDefault());

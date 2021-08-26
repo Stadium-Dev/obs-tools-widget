@@ -18,7 +18,8 @@ export default class DropdownButton extends LitElement {
 				font-family: sans-serif;
 				font-size: 12px;
 				text-transform: capitalize;
-				min-width: 130px;
+				min-width: 120px;
+				box-sizing: border-box;
 			}
 
 			:host(:focus) {
@@ -30,7 +31,6 @@ export default class DropdownButton extends LitElement {
 				line-height: 15px;
 				cursor: pointer;
 				padding: 6px 12px;
-				min-width: 100px;
 				border-radius: 4px;
 				box-sizing: content-box;
 				background: rgba(15, 15, 15, 0.5);

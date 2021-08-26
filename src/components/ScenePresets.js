@@ -25,14 +25,18 @@ async function getSceneSourcesStates() {
 
 async function saveNewPreset() {
     const sceneTransforms = await getSceneSourcesStates();
-    sceneTransforms.unshift("Layout Preset " + presets.length);
+    sceneTransforms.unshift("Layout Preset " + (presets.length + 1));
     presets.push(sceneTransforms);
+    savePresets();
+}
+
+function savePresets() {
     Config.set('layout-presets', presets);
 }
 
 function deletePreset(index) {
     presets.splice(index, 1);
-    Config.set('layout-presets', presets);
+    savePresets();
 }
 
 export default class ScenePresets extends DockTab {
@@ -69,7 +73,7 @@ export default class ScenePresets extends DockTab {
             :host {
                 display: grid;
                 height: 100%;
-                grid-template-rows: auto auto auto auto 1fr auto;
+                grid-template-rows: 1fr;
             }
             input, textarea {
                 font-size: 16px;
@@ -93,8 +97,15 @@ export default class ScenePresets extends DockTab {
             gyro-fluid-input {
                 min-width: 130px;
             }
+            dropdown-button {
+                min-width: 130px;
+                box-sizing: border-box;
+            }
             .layout-preset-list {
                 margin-bottom: 20px;
+                min-height: 200px;
+                border-radius: 4px;
+                padding: 1px;
             }
             .layout-preset-item {
                 display: grid;
@@ -133,12 +144,17 @@ export default class ScenePresets extends DockTab {
                 opacity: 0.75;
                 margin-left: 12px;
             }
-            input[disabled] {
+            input {
                 font-size: inherit;
             }
             input[disabled] {
-                border: none;
+                border: 1px solid transparent;
                 background: transparent;
+            }
+            obs-dock-tab-section {
+                height: 100%;
+                display: grid;
+                grid-template-rows: auto 1fr;
             }
         `;
     }
@@ -160,17 +176,28 @@ export default class ScenePresets extends DockTab {
 
                                     for(let source of preset.slice(1)) {
                                         const state = await Transitions.getState(source.name);
-                                        Transitions.transitionSource(source.scene, source.name, state, source, easingFunc, length);
+                                        Transitions.transitionSource(state.currentScene, source.name, state, source, easingFunc, length);
                                     }
                                 }}">
                                     <i class="material-icons">play_arrow</i>
                                 </div>
-                                <div class="preset-name">
-                                    <input value="${preset[0]}" disabled @click="${e => {
-                                        e.target.disabled = false;
-                                        e.target.focus();
-                                    }}" @blur="${e => {
-                                        e.target.disabled = true;
+                                <div class="preset-name" @dblclick="${e => {
+                                        const target = e.target;
+                                        target.removeAttribute('disabled');
+                                        target.focus();
+                                        target.select();
+                                    }}">
+                                    <input value="${preset[0]}" disabled @blur="${e => {
+                                        e.target.setAttribute('disabled', '');
+                                        window.getSelection().empty();
+                                    }}" @input="${e => {
+                                        presets[0] = e.target.value;
+                                        savePresets();
+                                    }}" @keydown="${e => {
+                                        if(e.key == "Enter") {
+                                            e.target.setAttribute('disabled', '');
+                                            window.getSelection().empty();
+                                        }
                                     }}"/>
                                 </div>
                                 <div class="item-button" @click="${e => {
@@ -197,7 +224,7 @@ export default class ScenePresets extends DockTab {
                 <button @click="${async () => {
                     await saveNewPreset();
                     this.update();
-                }}">Save current layout</button>
+                }}">Create new Preset</button>
             </obs-dock-tab-section>
         `;
     }
