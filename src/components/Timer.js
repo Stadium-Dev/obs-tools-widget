@@ -356,37 +356,35 @@ export default class Timer extends DockTab {
             <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
             <obs-dock-tab-section section-title="Timer">
-                <div class="section-content">
-                    <div class="timer-clock">
-                        <div class="timer">
-                            ${timerHours.toFixed(0).padStart(2, "0")}
-                            :
-                            ${timerMinutes.toFixed(0).padStart(2, "0")}
-                            :
-                            ${timerSeconds.toFixed(0).padStart(2, "0")}
-                        </div>
-                        <div class="sub-timer">
-                            <span class="material-icons inline">timer</span>
-                            ${elapsedHours.toFixed(0).padStart(2, "0")}
-                            :
-                            ${elapsedMinutes.toFixed(0).padStart(2, "0")}
-                            :
-                            ${elapsedSeconds.toFixed(0).padStart(2, "0")}
-                        </div>
+                <div class="timer-clock">
+                    <div class="timer">
+                        ${timerHours.toFixed(0).padStart(2, "0")}
+                        :
+                        ${timerMinutes.toFixed(0).padStart(2, "0")}
+                        :
+                        ${timerSeconds.toFixed(0).padStart(2, "0")}
                     </div>
-                    <div class="timer-controls">
-                        <button class="icon-button" @click="${() => this.pausePlayTimer()}">
-                            <span class="material-icons">
-                                ${this.timerPlaying ? "pause" : "play_arrow"}
-                            </span>
-                        </button>
-                        <button @click="${() => this.resetTimer()}" class="secondary icon-button">
-                            <span class="material-icons">replay</span>
-                        </button>
-                        <button @click="${() => this.addMinute()}" class="secondary">+1 m</button>
-                        <button @click="${() => this.subtractMinute()}" class="secondary">-1 m</button>
-                    </div> 
+                    <div class="sub-timer">
+                        <span class="material-icons inline">timer</span>
+                        ${elapsedHours.toFixed(0).padStart(2, "0")}
+                        :
+                        ${elapsedMinutes.toFixed(0).padStart(2, "0")}
+                        :
+                        ${elapsedSeconds.toFixed(0).padStart(2, "0")}
+                    </div>
                 </div>
+                <div class="timer-controls">
+                    <button class="icon-button" @click="${() => this.pausePlayTimer()}">
+                        <span class="material-icons">
+                            ${this.timerPlaying ? "pause" : "play_arrow"}
+                        </span>
+                    </button>
+                    <button @click="${() => this.resetTimer()}" class="secondary icon-button">
+                        <span class="material-icons">replay</span>
+                    </button>
+                    <button @click="${() => this.addMinute()}" class="secondary">+1 m</button>
+                    <button @click="${() => this.subtractMinute()}" class="secondary">-1 m</button>
+                </div> 
             </obs-dock-tab-section>
             
             <obs-dock-tab-section section-title="Start Time">

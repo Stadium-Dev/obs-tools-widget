@@ -90,7 +90,7 @@ export default class DropdownButton extends LitElement {
 				position: absolute;
 				right: 10px;
 				top: 50%;
-				transform: translateY(-60%);
+				transform: translateY(-55%);
 			}
 
 			:host([active]) .value::after {

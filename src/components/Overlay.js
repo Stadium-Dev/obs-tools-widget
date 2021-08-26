@@ -21,7 +21,7 @@ export default class Timer extends DockTab {
                 align-items: center;
                 text-decoration: none;
                 padding: 8px 4px;
-                font-size: 13px;
+                font-size: 12.5px;
                 cursor: grab;
             }
             .drag-and-button:not(:last-child) {

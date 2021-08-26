@@ -8,6 +8,9 @@ export default class Settings extends DockTab {
     static get styles() {
         return css`
             ${super.styles}
+            :host {
+                position: relative;
+            }
             input.full {
                 width: calc(100% - 80px);
             }
@@ -16,6 +19,16 @@ export default class Settings extends DockTab {
                 width: 80px;
                 font-size: 14px;
                 opacity: 0.75;
+            }
+            .client-id {
+                font-size: 12px;
+                position: absolute;
+                bottom: 8px;
+                left: 50%;
+                transform: translate(-50%, 0);
+                opacity: 0.25;
+                user-select: all;
+                width: 240px;
             }
         `;  
     }
@@ -92,6 +105,10 @@ export default class Settings extends DockTab {
                     Reload Tool
                 </button>
             </obs-dock-tab-section>
+
+            <div class="client-id">
+                <span>${localStorage.getItem('unique-client-id')}</span>
+            </div>
         `;
     }
 }

@@ -14,3 +14,6 @@
 - [x] Source Layout Presets
 - [ ] Midi Scene Switching and trigger layout presets
 - [ ] Add Custom Overlays
+
+
+Use graphcms as a dynamic overlay registry.

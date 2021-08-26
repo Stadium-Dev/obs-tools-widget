@@ -70,11 +70,6 @@ export default class ScenePresets extends DockTab {
     static get styles() {
         return css`
             ${super.styles}
-            :host {
-                display: grid;
-                height: 100%;
-                grid-template-rows: 1fr;
-            }
             input, textarea {
                 font-size: 16px;
                 display: inline-block;
@@ -103,7 +98,7 @@ export default class ScenePresets extends DockTab {
             }
             .layout-preset-list {
                 margin-bottom: 20px;
-                min-height: 200px;
+                min-height: 180px;
                 border-radius: 4px;
                 padding: 1px;
             }
@@ -152,7 +147,6 @@ export default class ScenePresets extends DockTab {
                 background: transparent;
             }
             obs-dock-tab-section {
-                height: 100%;
                 display: grid;
                 grid-template-rows: auto 1fr;
             }
@@ -163,6 +157,18 @@ export default class ScenePresets extends DockTab {
 
         return html`
             <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+            <obs-dock-tab-section section-title="Controls">
+                <div class="row">
+                    <label>Transition Time</label>
+                    ${this.transitionLengthInput}
+                </div>
+                
+                <div class="row">
+                    <label>Transition Curve</label>
+                    ${this.easingSelect}
+                </div>
+            </obs-dock-tab-section>
 
             <obs-dock-tab-section section-title="Scene Layout Presets">
                 
@@ -209,16 +215,6 @@ export default class ScenePresets extends DockTab {
                             </div>
                         `;
                     })}
-                </div>
-
-                <div class="row">
-                    <label>Transition Time</label>
-                    ${this.transitionLengthInput}
-                </div>
-                
-                <div class="row">
-                    <label>Transition Curve</label>
-                    ${this.easingSelect}
                 </div>
 
                 <button @click="${async () => {
