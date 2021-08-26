@@ -15,17 +15,17 @@ export default class Timer extends DockTab {
                 height: 100%;
             }
             .drag-and-button {
-                border-radius: 3px;
-                background: #333;
-                color: white;
+                color: #eee;
                 display: flex;
-                justify-content: center;
+                justify-content: flex-start;
                 align-items: center;
-                margin-bottom: 10px;
                 text-decoration: none;
-                height: 50px;
-                font-size: 16px;
-                border: 1px solid #373737;
+                padding: 8px 4px;
+                font-size: 13px;
+                cursor: grab;
+            }
+            .drag-and-button:not(:last-child) {
+                border-bottom: 1px solid #1a1a1a;
             }
             .drag-and-button:hover {
                 background: #363636;
@@ -33,21 +33,28 @@ export default class Timer extends DockTab {
             .drag-and-button:active {
                 background: #272727;
             }
+            i.material-icons {
+                font-size: 14px;
+                margin: 0 8px 0 4px;
+            }
+            .container {
+                padding: 5px;
+            }
         `;
     }
 
     render() {
         return html`
-            <div class="section" section-title="Overlay Drag & Drop">
-                <div class="section-content">
-                    <a class="drag-and-button" @click="${e => e.preventDefault()}" href="../overlay/timer.html?layer-name=Timer%20Overlay&layer-width=1920&layer-height=1080">
-                        Timer Overlay
-                    </a>
-                    <a class="drag-and-button" @click="${e => e.preventDefault()}" href="../overlay/subathon.html?layer-name=Subathon%20Overlay&layer-width=1920&layer-height=1080">
-                        Subathon Overlay
-                    </a>
-                </div>
-            </div>
+            <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+            
+            <obs-dock-tab-section section-title="Overlay Drag & Drop">
+                <a class="drag-and-button" @click="${e => e.preventDefault()}" href="../overlay/timer.html?layer-name=Timer%20Overlay&layer-width=1920&layer-height=1080">
+                    <i class="material-icons">layers</i> <span>Timer Overlay</span>
+                </a>
+                <a class="drag-and-button" @click="${e => e.preventDefault()}" href="../overlay/subathon.html?layer-name=Subathon%20Overlay&layer-width=1920&layer-height=1080">
+                    <i class="material-icons">layers</i> <span>Subathon Overlay</span>
+                </a>
+            </obs-dock-tab-section>
         `;
     }
 }

@@ -62,24 +62,27 @@ export default class Settings extends DockTab {
             </obs-dock-tab-section>
 
             <obs-dock-tab-section section-title="OBS WebSocket Integration">
-                <div>
-                    <label>OBS WebSocket</label>
-                    <span class="label">IP:Port</span><input value="${obsWebSocketPort}" 
+                <div style="margin: 5px 0 15px 0;">
+                    <label>
+                        Install obs-websocket plugin for automation features.
+                    </label>
+                </div>
+                <div class="row">
+                    <label>WebSocket URL</label>
+                    <input value="${obsWebSocketPort}" 
                         @change="${e => {
                             Config.set('obs-websocket-port', e.target.value);
                         }}" 
-                        placeholder="Port"/><br/>
-                    <span class="label">Password</span><input value="${obsWebSocketPassword}" 
+                        placeholder="Port"/>
+                </div>
+                <div class="row">
+                    <label>Password</label>
+                    <input value="${obsWebSocketPassword}" 
                         type="password"
                         @change="${e => {
                             Config.set('obs-websocket-password', e.target.value);
                         }}" 
                         placeholder="Password"/>
-                </div>
-                <div style="margin: 10px 0;">
-                    <span class="label" style="width: auto;">
-                        Install obs-websocket plugin for automation features.
-                    </span>
                 </div>
             
             </obs-dock-tab-section>

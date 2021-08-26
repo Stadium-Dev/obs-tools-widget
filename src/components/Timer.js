@@ -355,7 +355,7 @@ export default class Timer extends DockTab {
         return html`
             <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-            <div class="section" section-title="Timer">
+            <obs-dock-tab-section section-title="Timer">
                 <div class="section-content">
                     <div class="timer-clock">
                         <div class="timer">
@@ -387,14 +387,13 @@ export default class Timer extends DockTab {
                         <button @click="${() => this.subtractMinute()}" class="secondary">-1 m</button>
                     </div> 
                 </div>
-            </div>
-            <div class="section" section-title="Start Time">
-                <div class="section-content">
-                    <gyro-fluid-input id="startTimeH" min="0" max="999" steps="1" @change="${e => updateStartTime()}" value="${hours}" suffix="h"></gyro-fluid-input>
-                    <gyro-fluid-input id="startTimeM" min="0" max="59" steps="1" @change="${e => updateStartTime()}" value="${minutes}" suffix="m"></gyro-fluid-input>
-                    <gyro-fluid-input id="startTimeS" min="0" max="59" steps="1" @change="${e => updateStartTime()}" value="${seconds}" suffix="s"></gyro-fluid-input>
-                </div>
-            </div>
+            </obs-dock-tab-section>
+            
+            <obs-dock-tab-section section-title="Start Time">
+                <gyro-fluid-input id="startTimeH" min="0" max="999" steps="1" @change="${e => updateStartTime()}" value="${hours}" suffix="h"></gyro-fluid-input>
+                <gyro-fluid-input id="startTimeM" min="0" max="59" steps="1" @change="${e => updateStartTime()}" value="${minutes}" suffix="m"></gyro-fluid-input>
+                <gyro-fluid-input id="startTimeS" min="0" max="59" steps="1" @change="${e => updateStartTime()}" value="${seconds}" suffix="s"></gyro-fluid-input>
+            </obs-dock-tab-section>
 
             <obs-dock-tab-section optional section-title="Subathon Features"
                 @setion-change="${(e) => {this.subathonFeaturesEnabled = e.target.enabled;}}">

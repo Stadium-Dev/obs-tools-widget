@@ -97,11 +97,6 @@ export default class ScenePresets extends DockTab {
             <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
             <obs-dock-tab-section section-title="Scene Layout Presets">
-                Button to save a Scene Preset. 
-                And Nameable List of presets to switch to that layout.
-
-                <br/>
-                <br/>
 
                 <div class="row">
                     <label>Transition Time</label>
