@@ -98,7 +98,6 @@ export default class ScenePresets extends DockTab {
             }
             .layout-preset-list {
                 margin-bottom: 20px;
-                min-height: 180px;
                 border-radius: 4px;
                 padding: 1px;
             }
