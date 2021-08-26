@@ -10,7 +10,7 @@ export default class DockTabSection extends LitElement {
                 margin: 0px;
                 position: relative;
                 display: block;
-                --content-padding: 8px;
+                --content-padding: 8px 8px 12px 8px;
             }
             .title {
                 line-height: 100%;

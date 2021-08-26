@@ -32,6 +32,7 @@ export default class Timer extends DockTab {
             }
             .drag-and-button:active {
                 background: #272727;
+                cursor: grabbing;
             }
             i.material-icons {
                 font-size: 14px;

@@ -25,9 +25,14 @@ async function getSceneSourcesStates() {
 
 async function saveNewPreset() {
     const sceneTransforms = await getSceneSourcesStates();
+    sceneTransforms.unshift("Layout Preset " + presets.length);
     presets.push(sceneTransforms);
     Config.set('layout-presets', presets);
-    
+}
+
+function deletePreset(index) {
+    presets.splice(index, 1);
+    Config.set('layout-presets', presets);
 }
 
 export default class ScenePresets extends DockTab {
@@ -88,6 +93,53 @@ export default class ScenePresets extends DockTab {
             gyro-fluid-input {
                 min-width: 130px;
             }
+            .layout-preset-list {
+                margin-bottom: 20px;
+            }
+            .layout-preset-item {
+                display: grid;
+                grid-template-columns: auto 1fr auto;
+                align-items: center;
+                height: 32px;
+                position: relative;
+            }
+            .layout-preset-item:hover {
+                background: rgba(255, 255, 255, 0.025);
+            }
+            .layout-preset-item:not(:last-child) {
+                border-bottom: 1px solid #1a1a1a;
+            }
+            i.material-icons {
+                font-size: 16px;
+            }
+            .item-button {
+                cursor: pointer;
+                height: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 35px;
+                border-radius: 4px;
+            }
+            .item-button:hover {
+                background: #363636;
+                box-shadow: 1px 2px 8px rgba(0, 0, 0, 0.2);
+            }
+            .item-button:active {
+                background: #272727;
+                box-shadow: none;
+            }
+            .preset-name {
+                opacity: 0.75;
+                margin-left: 12px;
+            }
+            input[disabled] {
+                font-size: inherit;
+            }
+            input[disabled] {
+                border: none;
+                background: transparent;
+            }
         `;
     }
 
@@ -97,6 +149,40 @@ export default class ScenePresets extends DockTab {
             <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
             <obs-dock-tab-section section-title="Scene Layout Presets">
+                
+                <div class="layout-preset-list">
+                    ${presets.map((preset, i) => {
+                        return html`
+                            <div class="layout-preset-item">
+                                <div class="item-button" @click="${async () => {
+                                    const easingFunc = Easing[this.easingSelect.value.value];
+                                    const length = this.transitionLengthInput.value;
+
+                                    for(let source of preset.slice(1)) {
+                                        const state = await Transitions.getState(source.name);
+                                        Transitions.transitionSource(source.scene, source.name, state, source, easingFunc, length);
+                                    }
+                                }}">
+                                    <i class="material-icons">play_arrow</i>
+                                </div>
+                                <div class="preset-name">
+                                    <input value="${preset[0]}" disabled @click="${e => {
+                                        e.target.disabled = false;
+                                        e.target.focus();
+                                    }}" @blur="${e => {
+                                        e.target.disabled = true;
+                                    }}"/>
+                                </div>
+                                <div class="item-button" @click="${e => {
+                                    deletePreset(i);
+                                    this.update();
+                                }}">
+                                    <i class="material-icons" style="opacity: 0.5;">delete</i>
+                                </div>
+                            </div>
+                        `;
+                    })}
+                </div>
 
                 <div class="row">
                     <label>Transition Time</label>
@@ -107,24 +193,6 @@ export default class ScenePresets extends DockTab {
                     <label>Transition Curve</label>
                     ${this.easingSelect}
                 </div>
-                <br/>
-
-                ${presets.map((preset, i) => {
-                    return html`
-                        <button @click="${async () => {
-                            const easingFunc = Easing[this.easingSelect.value.value];
-                            const length = this.transitionLengthInput.value;
-
-                            for(let source of preset) {
-                                const state = await Transitions.getState(source.name);
-                                Transitions.transitionSource(source.scene, source.name, state, source, easingFunc, length);
-                            }
-                        }}">Load preset ${i}</button>
-                    `;
-                })}
-
-                <br/>
-                <br/>
 
                 <button @click="${async () => {
                     await saveNewPreset();

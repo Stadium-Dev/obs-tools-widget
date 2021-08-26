@@ -40,7 +40,7 @@ export default class MidiSceneSwitcher extends DockTab {
             <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
             <obs-dock-tab-section section-title="Midi Scene Switcher">
-                Editorial list of scenes and auto detected midi buttons to switch to that scene.
+                Editorial list of scenes and auto detected midi buttons to switch to that scene or trigger layout presets.
             </obs-dock-tab-section>
         `;
     }
