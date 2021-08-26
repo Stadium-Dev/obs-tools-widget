@@ -15,5 +15,7 @@
 - [ ] Midi Scene Switching and trigger layout presets
 - [ ] Add Custom Overlays
 
-
 Use graphcms as a dynamic overlay registry.
+Add overlay with a button.
+    Create Browser Source and plug in the url.
+    

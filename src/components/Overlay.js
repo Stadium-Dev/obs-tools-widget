@@ -1,10 +1,7 @@
 import { css, html } from 'https://cdn.skypack.dev/lit-element@2.4.0';
 import DockTab from './DockTab.js';
 
-function elementUsed(id) {
-    const ele = document.querySelector(`${id}`);
-    return ele != null && ele.style.display !== "none";
-}
+
 
 export default class Timer extends DockTab {
 
@@ -44,17 +41,30 @@ export default class Timer extends DockTab {
         `;
     }
 
+    constructor() {
+        super();
+
+        
+    }
+
     render() {
+        const overlays = [
+            { name: "Timer Overlay", url: "../overlay/timer.html?layer-name=Timer%20Overlay&layer-width=1920&layer-height=1080" },
+            { name: "Subathon Overlay", url: "../overlay/subathon.html?layer-name=Subathon%20Overlay&layer-width=1920&layer-height=1080" }
+        ];
+
         return html`
             <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
             
             <obs-dock-tab-section section-title="Overlay Drag & Drop">
-                <a class="drag-and-button" @click="${e => e.preventDefault()}" href="../overlay/timer.html?layer-name=Timer%20Overlay&layer-width=1920&layer-height=1080">
-                    <i class="material-icons">layers</i> <span>Timer Overlay</span>
-                </a>
-                <a class="drag-and-button" @click="${e => e.preventDefault()}" href="../overlay/subathon.html?layer-name=Subathon%20Overlay&layer-width=1920&layer-height=1080">
-                    <i class="material-icons">layers</i> <span>Subathon Overlay</span>
-                </a>
+                ${overlays.map(overlay => {
+                    return html`
+                        <a class="drag-and-button" @click="${e => e.preventDefault()}" href="${overlay.url}">
+                            <i class="material-icons">layers</i> 
+                            <span>${overlay.name}</span>
+                        </a>
+                    `;
+                })}
             </obs-dock-tab-section>
         `;
     }
