@@ -110,6 +110,15 @@ export default class DockTab extends LitElement {
                 line-height: 18px;
                 border-top: 1px solid #383838;
             }
+            .row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 8px;
+                margin-top: 8px;
+                margin-left: 10px;
+                margin-right: 10px;
+            }
         `;
     }
 

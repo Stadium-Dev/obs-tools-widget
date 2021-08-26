@@ -3,6 +3,12 @@ import Config from '../Config.js';
 import DockTab from './DockTab.js';
 import OBS from '../OBS.js';
 
+function setStatus(str) {
+    const tabEle = document.querySelector('obs-1uckybot-tab');
+    const ele = tabEle.shadowRoot.querySelector('#connStatus');
+    ele.innerText = str;
+}
+
 let mediaServerWs;
 function disbleMediaServerControl() {
     if(mediaServerWs) {
@@ -10,7 +16,7 @@ function disbleMediaServerControl() {
     }
 }
 function enableMediaServerControl() {
-    const host = Config.get('media-server-url') || "ws://localhost:8000";
+    const host = Config.get('stream-server-url') || "ws://localhost:8000";
 
     mediaServerWs = new WebSocket(host);
 
@@ -33,9 +39,11 @@ function enableMediaServerControl() {
 
     mediaServerWs.addEventListener('open', msg => {
         console.log("connected to media server websocket");
+        setStatus('connected');
     })
     mediaServerWs.addEventListener('close', msg => {
         console.log("disconnected from media server websocket");
+        setStatus('disconnected');
     })
 }
 
@@ -100,7 +108,7 @@ export default class Luckybot extends DockTab {
     }
 
     render() {
-        const mediaServerUrl = Config.get('media-server-url') || "localhost:8000";
+        const mediaServerUrl = Config.get('stream-server-url') || "ws://localhost:8000";
 
         return html`
             <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -123,38 +131,43 @@ export default class Luckybot extends DockTab {
                     disbleMediaServerControl();
                 }
             }}">
-                <label>Media Server URL</label>
-                <span class="label">IP:Port</span><input value="${mediaServerUrl}" 
-                    @change="${e => {
-                        Config.set('media-server-url', e.target.value);
-                    }}" 
-                    placeholder="IP:Port"/><br/>
+                <div class="row">
+                    <label>WebSocket URL</label>
+                    <input value="${mediaServerUrl}" 
+                        @change="${e => {
+                            Config.set('stream-server-url', e.target.value);
+                        }}" 
+                        placeholder="IP:Port"/>
+                </div>
 
-                <br/>
-                <br/>
-                <span>Remote Scene: </span>
-                <select id="remoteStreamScene" ?disabled="${this.obsScenes.length == 0}">
-                    ${this.obsScenes.length ? this.obsScenes.map(({ name }) => {
-                        return html`<option value="${name}">${name}</option>`;
-                    }) : html`<option value="none">No Scenes Available</option>`}
-                </select>
-                <br/>
-                <span>Standby Scene: </span>
-                <select id="standByScene" ?disabled="${this.obsScenes.length == 0}">
-                    ${this.obsScenes.length ? this.obsScenes.map(({ name }) => {
-                        return html`<option value="${name}">${name}</option>`;
-                    }) : html`<option value="none">No Scenes Available</option>`}
-                </select>
-                <br/>
-                <br/>
-
-                <div>
+                <div class="row">
                     <button @click="${() => {
-                         disbleMediaServerControl();
-                         setTimeout(() => {
+                        setStatus('reconnecting...');
+                        disbleMediaServerControl();
+                        setTimeout(() => {
                             enableMediaServerControl();
-                         }, 2000);
+                        }, 2000);
                     }}">Reconnect</button>
+
+                    <span id="connStatus">evaluating...</span>
+                </div>
+
+                <br/>
+                <div class="row">
+                    <label>Remote Scene</label>
+                    <select id="remoteStreamScene" ?disabled="${this.obsScenes.length == 0}">
+                        ${this.obsScenes.length ? this.obsScenes.map(({ name }) => {
+                            return html`<option value="${name}">${name}</option>`;
+                        }) : html`<option value="none">No Scenes Available</option>`}
+                    </select>
+                </div>
+                <div class="row">
+                    <label>Standby Scene</label>
+                    <select id="standByScene" ?disabled="${this.obsScenes.length == 0}">
+                        ${this.obsScenes.length ? this.obsScenes.map(({ name }) => {
+                            return html`<option value="${name}">${name}</option>`;
+                        }) : html`<option value="none">No Scenes Available</option>`}
+                    </select>
                 </div>
             </obs-dock-tab-section>
 

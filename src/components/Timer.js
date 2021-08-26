@@ -126,10 +126,15 @@ export default class Timer extends DockTab {
                 align-items: center;
             }
             .inputs {
+                width: 100%;
                 display: grid;
                 grid-template-columns: auto auto;
                 grid-template-rows: auto 1fr;
                 grid-gap: 10px;
+            }
+            .inputs input {
+                background: transparent;
+                border: none;
             }
             .inputs label {
                 display: inline;
@@ -313,39 +318,35 @@ export default class Timer extends DockTab {
         const timerSeconds = Math.floor(this.time) % 60;
 
         const subAddTime = Config.get('sub-add-time');
-        const subHours = Math.floor(subAddTime / 60 / 60);
         const subMinutes = Math.floor(subAddTime / 60) % 60;
         const subSeconds = Math.floor(subAddTime) % 60;
 
         const donoAddTime = Config.get('donation-add-time');
-        const donoHours = Math.floor(donoAddTime / 60 / 60);
         const donoMinutes = Math.floor(donoAddTime / 60) % 60;
         const donoSeconds = Math.floor(donoAddTime) % 60;
 
         const updateStartTime = () => {
-            const h = this.shadowRoot.querySelector('#startTimeH').valueAsNumber, 
-                  m = this.shadowRoot.querySelector('#startTimeM').valueAsNumber, 
-                  s = this.shadowRoot.querySelector('#startTimeS').valueAsNumber;
+            const h = this.shadowRoot.querySelector('#startTimeH').value, 
+                  m = this.shadowRoot.querySelector('#startTimeM').value, 
+                  s = this.shadowRoot.querySelector('#startTimeS').value;
 
             const time = (h * 60 * 60) + (m * 60) + (s);
             Config.set('start-time', time);
         }
 
         const updateSubTime = () => {
-            const h = this.shadowRoot.querySelector('#subTimeH').valueAsNumber, 
-                  m = this.shadowRoot.querySelector('#subTimeM').valueAsNumber, 
-                  s = this.shadowRoot.querySelector('#subTimeS').valueAsNumber;
+            const m = this.shadowRoot.querySelector('#subTimeM').value, 
+                  s = this.shadowRoot.querySelector('#subTimeS').value;
 
-            const time = (h * 60 * 60) + (m * 60) + (s);
+            const time = (m * 60) + (s);
             Config.set('sub-add-time', time);
         }
 
         const updateDonoTime = () => {
-            const h = this.shadowRoot.querySelector('#donoTimeH').valueAsNumber, 
-                  m = this.shadowRoot.querySelector('#donoTimeM').valueAsNumber, 
-                  s = this.shadowRoot.querySelector('#donoTimeS').valueAsNumber;
+            const m = this.shadowRoot.querySelector('#donoTimeM').value, 
+                  s = this.shadowRoot.querySelector('#donoTimeS').value;
 
-            const time = (h * 60 * 60) + (m * 60) + (s);
+            const time = (m * 60) + (s);
             Config.set('donation-add-time', time);
         }
 
@@ -389,38 +390,41 @@ export default class Timer extends DockTab {
             </div>
             <div class="section" section-title="Start Time">
                 <div class="section-content">
-                    <input id="startTimeH" min="0" @change="${e => updateStartTime()}" type="number" value="${hours}"/>h
-                    <input id="startTimeM" min="0" @change="${e => updateStartTime()}" type="number" value="${minutes}"/>m
-                    <input id="startTimeS" min="0" @change="${e => updateStartTime()}" type="number" value="${seconds}"/>s
+                    <gyro-fluid-input id="startTimeH" min="0" max="999" steps="1" @change="${e => updateStartTime()}" value="${hours}" suffix="h"></gyro-fluid-input>
+                    <gyro-fluid-input id="startTimeM" min="0" max="59" steps="1" @change="${e => updateStartTime()}" value="${minutes}" suffix="m"></gyro-fluid-input>
+                    <gyro-fluid-input id="startTimeS" min="0" max="59" steps="1" @change="${e => updateStartTime()}" value="${seconds}" suffix="s"></gyro-fluid-input>
                 </div>
             </div>
 
             <obs-dock-tab-section optional section-title="Subathon Features"
                 @setion-change="${(e) => {this.subathonFeaturesEnabled = e.target.enabled;}}">
 
-                <div>
-                    <label>Time added by Sub</label>
-                    <input id="subTimeH" @change="${e => updateSubTime()}" type="number" value="${subHours}"/>h
-                    <input id="subTimeM" @change="${e => updateSubTime()}" type="number" value="${subMinutes}"/>m
-                    <input id="subTimeS" @change="${e => updateSubTime()}" type="number" value="${subSeconds}"/>s
+                <label>Time added by events:</label>
+                <div class="row">
+                    <label>Sub</label>
+                    <div>
+                        <gyro-fluid-input id="subTimeM" min="0" max="60" steps="1" @change="${e => updateSubTime()}" value="${subMinutes}" suffix="m"></gyro-fluid-input>
+                        <gyro-fluid-input id="subTimeS" min="0" max="59" steps="1" @change="${e => updateSubTime()}" value="${subSeconds}" suffix="s"></gyro-fluid-input>
+                    </div>
+                </div>
+                <div class="row">
+                    <label>Donation / 1</label>
+                    <div>
+                        <gyro-fluid-input id="donoTimeM" min="0" max="60" steps="1" @change="${e => updateDonoTime()}" value="${donoMinutes}" suffix="m"></gyro-fluid-input>
+                        <gyro-fluid-input id="donoTimeS" min="0" max="59" steps="1" @change="${e => updateDonoTime()}" value="${donoSeconds}" suffix="s"></gyro-fluid-input>
+                    </div>
                 </div>
                 <br/>
-                <div>
-                    <label>Time added by Donation/€</label>
-                    <input id="donoTimeH" @change="${e => updateDonoTime()}" type="number" value="${donoHours}"/>h
-                    <input id="donoTimeM" @change="${e => updateDonoTime()}" type="number" value="${donoMinutes}"/>m
-                    <input id="donoTimeS" @change="${e => updateDonoTime()}" type="number" value="${donoSeconds}"/>s
-                </div>
-                <br/>
-                <div>
+                <label>Counters:</label>
+                <div class="row">
                     <div class="inputs">
                         <div>
                             <label>Subs</label>
                             <input type="number" value="${subs}" disabled="true"/>
                         </div>
                         <div>
-                            <label>Donations</label>
-                            <input type="number" value="${donated}" disabled="true"/>€
+                            <label>Donated</label>
+                            <input type="number" value="${donated}" disabled="true"/>
                         </div>
                         <div class="history">
                             ${history.map(entry => {
@@ -447,15 +451,17 @@ export default class Timer extends DockTab {
                 </div>
             </obs-dock-tab-section>
             
-            <obs-dock-tab-section optional section-title="Automatic scene switch"
+            <obs-dock-tab-section optional section-title="Timed scene switch"
                 @setion-change="${(e) => {this.autoSceneSwitchEnabled = e.target.enabled;}}">
 
-                <span>Scene: </span>
-                <select id="autoSwitchSceneSelect" ?disabled="${this.obsScenes.length == 0}">
-                    ${this.obsScenes.length ? this.obsScenes.map(({ name }) => {
-                        return html`<option value="${name}">${name}</option>`;
-                    }) : html`<option value="none">No Scenes Available</option>`}
-                </select>
+                <div class="row">
+                    <label>Scene</label>
+                    <select id="autoSwitchSceneSelect" ?disabled="${this.obsScenes.length == 0}">
+                        ${this.obsScenes.length ? this.obsScenes.map(({ name }) => {
+                            return html`<option value="${name}">${name}</option>`;
+                        }) : html`<option value="none">No Scenes Available</option>`}
+                    </select>
+                </div>
             </obs-dock-tab-section>
         `;
     }

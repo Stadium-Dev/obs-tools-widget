@@ -7,7 +7,7 @@ import OBS from '../obs/OBS';
 import './FluidInput';
 import './DropdownButton.js';
 
-let presets = [];
+let presets = Config.get('layout-presets') || [];
 
 async function getSceneSourcesStates() {
     const state = OBS.getState();
@@ -23,7 +23,40 @@ async function getSceneSourcesStates() {
     return Promise.all(transforms);
 }
 
+async function saveNewPreset() {
+    const sceneTransforms = await getSceneSourcesStates();
+    presets.push(sceneTransforms);
+    Config.set('layout-presets', presets);
+    
+}
+
 export default class ScenePresets extends DockTab {
+
+    constructor() {
+        super();
+
+        this.easingSelect = document.createElement('dropdown-button');
+        this.easingSelect.options = Object.keys(Easing).reverse().map(key => {
+            return { name: key, value: key }
+        });
+        const savedValue = Config.get('preset-easing-curve');
+        if(savedValue) {
+            this.easingSelect.value = savedValue;
+        }
+        this.easingSelect.addEventListener('change', e => {
+            Config.set('preset-easing-curve', this.easingSelect.value);
+        })
+
+        this.transitionLengthInput = document.createElement('gyro-fluid-input');
+        this.transitionLengthInput.suffix = "s";
+        this.transitionLengthInput.value = Config.get('preset-transition-length') || 1;
+        this.transitionLengthInput.min = 0;
+        this.transitionLengthInput.max = 10;
+        this.transitionLengthInput.steps = 0.1;
+        this.transitionLengthInput.onchange = () => {
+            Config.set('preset-transition-length', this.transitionLengthInput.value);
+        }
+    }
 
     static get styles() {
         return css`
@@ -52,23 +85,10 @@ export default class ScenePresets extends DockTab {
                 margin-top: 0;
                 font-size: 12px;
             }
+            gyro-fluid-input {
+                min-width: 130px;
+            }
         `;
-    }
-
-    constructor() {
-        super();
-
-        this.easingSelect = document.createElement('dropdown-button');
-        this.easingSelect.options = Object.keys(Easing).reverse().map(key => {
-            return { name: key, value: key }
-        });
-
-        this.transitionLengthInput = document.createElement('gyro-fluid-input');
-        this.transitionLengthInput.suffix = "s";
-        this.transitionLengthInput.value = 1;
-        this.transitionLengthInput.min = 0;
-        this.transitionLengthInput.max = 10;
-        this.transitionLengthInput.steps = 0.1;
     }
 
     render() {
@@ -81,14 +101,17 @@ export default class ScenePresets extends DockTab {
                 And Nameable List of presets to switch to that layout.
 
                 <br/>
-                <label>Transition Time:</label>
-                ${this.transitionLengthInput}
-                <br/>
                 <br/>
 
-                <label>Transition Curve:</label>
-                ${this.easingSelect}
-                <br/>
+                <div class="row">
+                    <label>Transition Time</label>
+                    ${this.transitionLengthInput}
+                </div>
+                
+                <div class="row">
+                    <label>Transition Curve</label>
+                    ${this.easingSelect}
+                </div>
                 <br/>
 
                 ${presets.map((preset, i) => {
@@ -109,8 +132,7 @@ export default class ScenePresets extends DockTab {
                 <br/>
 
                 <button @click="${async () => {
-                    const sceneTransforms = await getSceneSourcesStates();
-                    presets.push(sceneTransforms);
+                    await saveNewPreset();
                     this.update();
                 }}">Save current layout</button>
             </obs-dock-tab-section>

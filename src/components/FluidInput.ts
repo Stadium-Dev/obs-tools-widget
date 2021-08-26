@@ -6,126 +6,129 @@ function map(value, in_min, in_max, out_min, out_max) {
 
 export default class FluidInput extends LitElement {
 
+    static get styles() {
+        return css`
+            :host {
+                display: inline-block;
+                height: 25px;
+                width: 85px;
+
+                --color-input-background: #1B1B1B;
+                --color-input-hover-background: #202020;
+                --color-input-active-background: #373737;
+            }
+
+            .input-container {
+                width: 100%;
+                height: 100%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background: var(--color-input-background);
+                border-radius: 4px;
+                cursor: e-resize;
+                position: relative;
+                overflow: hidden;
+                border: 1px solid #373737;
+            }
+
+            .input-container:before {
+                content: "";
+                position: absolute;
+                left: 0;
+                top: 0;
+                height: 100%;
+                width: calc(100% * var(--value));
+                pointer-events: none;
+                background: white;
+                opacity: 0.025;
+            }
+
+            .input-container[active]:before {
+                opacity: 0.1;
+            }
+
+            .input-container:hover {
+                background: var(--color-input-hover-background);
+            }
+            
+            .input-container[active] {
+                background: var(--color-input-active-background);
+            }
+
+            .value-container {
+                white-space: nowrap;
+                height: 100%;
+            }
+
+            .input-value {
+                cursor: e-resize;
+                height: 100%;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                border: none;
+                background: transparent;
+                margin: 0 -10px;
+                width: auto;
+                padding: 0;
+                color: inherit;
+                font-family: inherit;
+                font-size: inherit;
+                text-align: center;
+            }
+
+            .input-value:focus {
+                cursor: text;
+            }
+
+            .value-suffix {
+                opacity: 0.5;
+                pointer-events: none;
+                margin-left: 5px;
+            }
+
+            .input-value:focus {
+                outline: none;
+                cursor: text;
+            }
+
+            .arrow {
+                padding: 0 6px;
+                height: 100%;
+                display: flex;
+                align-items: center;
+                cursor: pointer;
+                opacity: 0.75;
+                position: absolute;
+            }
+
+            .left-arrow {
+                left: 0;
+            }
+            .right-arrow {
+                right: 0;
+            }
+
+            .arrow:hover {
+                background: rgba(255, 255, 255, 0.05);
+            }
+
+            .arrow:active {
+                background: rgba(255, 255, 255, 0.01);
+            }
+
+            .arrow svg {
+                fill: none;
+                stroke: var(--color-text, #eee);
+                stroke-width: 1.25px;
+                stroke-linecap: round;
+            }
+        `;
+    }
+
 	render() {
 		return html`
-			<style>
-				:host {
-                    display: inline-block;
-                    height: 28px;
-                    width: 85px;
-
-                    --color-input-background: #1B1B1B;
-                    --color-input-hover-background: #202020;
-                    --color-input-active-background: #373737;
-				}
-
-                .input-container {
-                    width: 100%;
-                    height: 100%;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    background: var(--color-input-background);
-                    border-radius: 4px;
-                    cursor: e-resize;
-                    position: relative;
-                    overflow: hidden;
-                }
-
-                .input-container:before {
-                    content: "";
-                    position: absolute;
-                    left: 0;
-                    top: 0;
-                    height: 100%;
-                    width: calc(100% * var(--value));
-                    pointer-events: none;
-                    background: white;
-                    opacity: 0.025;
-                }
-
-                .input-container[active]:before {
-                    opacity: 0.1;
-                }
-
-                .input-container:hover {
-                    background: var(--color-input-hover-background);
-                }
-                
-                .input-container[active] {
-                    background: var(--color-input-active-background);
-                }
-
-                .value-container {
-                    white-space: nowrap;
-                    height: 100%;
-                }
-
-                .input-value {
-                    cursor: e-resize;
-                    height: 100%;
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
-                    border: none;
-                    background: transparent;
-                    margin: 0 -10px;
-                    width: auto;
-                    padding: 0;
-                    color: inherit;
-                    font-family: inherit;
-                    font-size: inherit;
-                    text-align: center;
-                }
-
-                .input-value:focus {
-                    cursor: text;
-                }
-
-                .value-suffix {
-                    opacity: 0.5;
-                    pointer-events: none;
-                    margin-left: 5px;
-                }
-
-                .input-value:focus {
-                    outline: none;
-                    cursor: text;
-                }
-
-                .arrow {
-                    padding: 0 6px;
-                    height: 100%;
-                    display: flex;
-                    align-items: center;
-                    cursor: pointer;
-                    opacity: 0.75;
-                    position: absolute;
-                }
-
-                .left-arrow {
-                    left: 0;
-                }
-                .right-arrow {
-                    right: 0;
-                }
-
-                .arrow:hover {
-                    background: rgba(255, 255, 255, 0.05);
-                }
-
-                .arrow:active {
-                    background: rgba(255, 255, 255, 0.01);
-                }
-
-                .arrow svg {
-                    fill: none;
-                    stroke: var(--color-text, #eee);
-                    stroke-width: 1.25px;
-                    stroke-linecap: round;
-                }
-                
-			</style>
 			<div class="input-container">
                 <span class="arrow left-arrow">
                     <svg x="0px" y="0px" width="7.3px" height="11px" viewBox="0 0 7.3 12.5">
