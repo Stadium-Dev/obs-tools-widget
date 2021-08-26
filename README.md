@@ -14,6 +14,7 @@
 - [x] Source Layout Presets
 - [ ] Midi Scene Switching and trigger layout presets
 - [ ] Add Custom Overlays
+- [ ] Scene/Source Presets like the overlay. creating sources with socket.
 
 Use graphcms as a dynamic overlay registry.
 Add overlay with a button.
