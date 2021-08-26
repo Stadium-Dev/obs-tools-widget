@@ -104,6 +104,11 @@ export default class Settings extends DockTab {
                 <button @click="${e => location.reload()}">
                     Reload Tool
                 </button>
+                <button @click="${e => {
+                    Config.fullReset();
+                }}">
+                    Reset Tool
+                </button>
             </obs-dock-tab-section>
 
             <div class="client-id">

@@ -157,7 +157,7 @@ export default class Timer extends DockTab {
             this.time = Config.get('timer');
         }
 
-        this.timerPlaying = true;
+        this.timerPlaying = false;
 
         let lastTick = null;
         const updateTimer = ms => {

@@ -218,7 +218,11 @@ export default class ScenePresets extends DockTab {
                 </div>
 
                 <button @click="${async () => {
-                    await saveNewPreset();
+                    try {
+                        await saveNewPreset();
+                    } catch(err) {
+                        console.error(err);
+                    }
                     this.update();
                 }}">Create new Preset</button>
             </obs-dock-tab-section>

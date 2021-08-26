@@ -39,6 +39,11 @@ export default class Config {
         return localStorage.getItem('obs-tools-store');
     }
 
+    static fullReset() {
+        localStorage.setItem('obs-tools-store', "{}");
+        location.reload();
+    }
+
     static copySaveToClipboard() {
         navigator.clipboard.writeText(this.serialize());
     }
