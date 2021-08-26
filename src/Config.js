@@ -35,4 +35,12 @@ export default class Config {
         return store[key];
     }
 
+    static serialize() {
+        return localStorage.getItem('obs-tools-store');
+    }
+
+    static copySaveToClipboard() {
+        navigator.clipboard.writeText(this.serialize());
+    }
+
 }

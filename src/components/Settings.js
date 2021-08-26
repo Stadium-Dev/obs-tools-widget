@@ -87,7 +87,7 @@ export default class Settings extends DockTab {
             
             </obs-dock-tab-section>
 
-            <obs-dock-tab-section section-title="Panic Button">
+            <obs-dock-tab-section section-title="Advanced">
                 <button @click="${e => location.reload()}">
                     Reload Tool
                 </button>

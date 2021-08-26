@@ -191,7 +191,7 @@ export default class ScenePresets extends DockTab {
                                         e.target.setAttribute('disabled', '');
                                         window.getSelection().empty();
                                     }}" @input="${e => {
-                                        presets[0] = e.target.value;
+                                        preset[0] = e.target.value;
                                         savePresets();
                                     }}" @keydown="${e => {
                                         if(e.key == "Enter") {
