@@ -388,6 +388,12 @@ export default class Timer extends DockTab {
             </obs-dock-tab-section>
             
             <obs-dock-tab-section section-title="Start Time">
+
+                <div>
+                    Autoreset timer
+                    <input type="checkbox" />
+                </div>
+
                 <gyro-fluid-input id="startTimeH" min="0" max="999" steps="1" @change="${e => updateStartTime()}" value="${hours}" suffix="h"></gyro-fluid-input>
                 <gyro-fluid-input id="startTimeM" min="0" max="59" steps="1" @change="${e => updateStartTime()}" value="${minutes}" suffix="m"></gyro-fluid-input>
                 <gyro-fluid-input id="startTimeS" min="0" max="59" steps="1" @change="${e => updateStartTime()}" value="${seconds}" suffix="s"></gyro-fluid-input>

@@ -103,6 +103,12 @@ export default class MidiSceneSwitcher extends DockTab {
                         return html`
                             <div class="binding">
                                 <dropdown-button class="Action" .options="${[
+                                    { name: "Midi", value: 0 },
+                                    { name: "Scene Switched", value: 0 },
+                                    { name: "Timer Finished", value: 0 },
+                                ]}"></dropdown-button>
+
+                                <dropdown-button class="Action" .options="${[
                                     { name: "Switch Scene", value: 0 },
                                     { name: "Trigger Preset", value: 0 }
                                 ]}"></dropdown-button>
