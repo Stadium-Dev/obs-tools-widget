@@ -146,6 +146,13 @@ async function connectionOpende() {
             }
         }
     })
+
+    obs.on('SceneItemSelected', e => {
+        OBS.emit("selection", e);
+    })
+    obs.on('SceneItemDeselected', e => {
+        OBS.emit("selection", e);
+    })
     
     statusInterval = setInterval(reqUpdate, tickrate);
     reqUpdate();
@@ -159,10 +166,10 @@ export default class OBS {
         return lokalStatus;
     }
 
-    static emit(event) {
+    static emit(event, data) {
         listeners[event] = listeners[event] || [];
         for(let callback of listeners[event]) {
-            callback();
+            callback(data);
         }
     }
 

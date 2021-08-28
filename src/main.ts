@@ -4,6 +4,7 @@ import "./components/Overlay.js";
 import "./components/Luckybot.js";
 import "./components/ScenePresets.js";
 import "./components/MidiSceneSwitcher.js";
+import "./components/OverlayProperties.js";
 import "./Streamlabs.js";
 import "./Labels.js";
 

@@ -1,4 +1,4 @@
-import { css, html } from 'https://cdn.skypack.dev/lit-element@2.4.0';
+import { css, html } from 'lit-element';
 import Config from '../Config.js';
 import DockTab from './DockTab.js';
 import OBS from '../OBS.js';
@@ -111,7 +111,7 @@ export default class Luckybot extends DockTab {
         const mediaServerUrl = Config.get('stream-server-url') || "ws://localhost:8000";
 
         return html`
-            <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+            <link href="./material-icons.css" rel="stylesheet">
             
             <obs-dock-tab-section section-title="Token">
                 <label>1uckybot Access Token</label>

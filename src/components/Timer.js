@@ -1,4 +1,4 @@
-import { css, html } from 'https://cdn.skypack.dev/lit-element@2.4.0';
+import { css, html } from 'lit-element';
 import Config from '../Config.js';
 import OBS from '../OBS.js';
 import Streamlabs from '../Streamlabs.js';
@@ -376,7 +376,7 @@ export default class Timer extends DockTab {
         const history = Config.get('event-history');
 
         return html`
-            <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+            <link href="./material-icons.css" rel="stylesheet">
 
             <obs-dock-tab-section section-title="Timer">
                 <div class="timer-clock">

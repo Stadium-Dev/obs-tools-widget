@@ -1,4 +1,4 @@
-import { css, html } from 'https://cdn.skypack.dev/lit-element@2.4.0';
+import { css, html } from 'lit-element';
 import Config from '../Config.js';
 import DockTab from './DockTab.js';
 import Twitch from '../services/Twitch.js';
@@ -61,7 +61,7 @@ export default class Settings extends DockTab {
         const obsWebSocketPassword = Config.get('obs-websocket-password') || "password";
 
         return html`
-            <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+            <link href="./material-icons.css" rel="stylesheet">
 
             <obs-dock-tab-section section-title="Streamlabs Integration">
                 <label>Streamlabs Websocket Token</label>

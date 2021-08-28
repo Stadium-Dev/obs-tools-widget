@@ -119,7 +119,7 @@ export default class DropdownButton extends LitElement {
 	render() {
 		const options = this.props.options || [];
 		const onSelect = this.props.onSelect;
-		const value = this.props.value ? this.props.value.name : "none";
+		const value = this.props.value != null ? (this.props.value.name || "none") : "none";
 
 		return html`
 			<div class="value">
@@ -139,6 +139,13 @@ export default class DropdownButton extends LitElement {
 
 	set value(val) {
 		this.props.value = val;
+
+		for(let option of this.options) {
+			if(option.value == val) {
+				this.props.value = option;
+			}
+		}
+
 		this.update();
 	}
 

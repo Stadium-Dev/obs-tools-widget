@@ -1,4 +1,4 @@
-import { css, html, LitElement } from 'https://cdn.skypack.dev/lit-element@2.4.0';
+import { css, html, LitElement } from 'lit-element';
 
 export default class DockTab extends LitElement {
 

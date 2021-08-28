@@ -1,6 +1,6 @@
-import { css, html } from 'https://cdn.skypack.dev/lit-element@2.4.0';
+import { css, html } from 'lit-element';
 import DockTab from './DockTab.js';
-
+import OBS from '../obs/OBS';
 
 
 export default class Timer extends DockTab {
@@ -38,13 +38,40 @@ export default class Timer extends DockTab {
             .container {
                 padding: 5px;
             }
+            .overlay-section {
+                min-height: 150px;
+            }
         `;
     }
 
     constructor() {
         super();
 
-        
+        this.selection = [];
+
+        OBS.on('selection', e => {
+            switch (e.updateType) {
+                case "SceneItemDeselected":
+                    let index = 0;
+                    for(let item of this.selection) {
+                        if(item.itemId == e.itemId) {
+                            this.selection.splice(index, 1);
+                            break;
+                        }
+                        index++;
+                    }
+                    break;
+                case "SceneItemSelected":
+                    this.selection.push({
+                        itemId: e.itemId,
+                        itemName: e.itemName,
+                    });
+                    break;
+            }
+            requestAnimationFrame(() => {
+                this.update();
+            })
+        })
     }
 
     render() {
@@ -54,9 +81,9 @@ export default class Timer extends DockTab {
         ];
 
         return html`
-            <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+            <link href="./material-icons.css" rel="stylesheet">
             
-            <obs-dock-tab-section section-title="Overlay Drag & Drop">
+            <obs-dock-tab-section section-title="Overlay Drag & Drop" class="overlay-section">
                 ${overlays.map(overlay => {
                     return html`
                         <a class="drag-and-button" @click="${e => e.preventDefault()}" href="${overlay.url}">
@@ -65,6 +92,18 @@ export default class Timer extends DockTab {
                         </a>
                     `;
                 })}
+            </obs-dock-tab-section>
+
+            <obs-dock-tab-section section-title="Overlay Properties">
+                <div>
+                    ${this.selection.map(item => {
+                        return html`
+                            <div>
+                                ${JSON.stringify(item)}
+                            </div>
+                        `;
+                    })}
+                </div>
             </obs-dock-tab-section>
         `;
     }

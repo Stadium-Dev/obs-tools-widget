@@ -1,43 +1,10 @@
-import { css, html } from 'https://cdn.skypack.dev/lit-element@2.4.0';
+import { css, html } from 'lit-element';
 import Config from '../Config.js';
 import DockTab from './DockTab.js';
-import Transitions from '../obs/Transitions';
 import Easing from '../obs/Easing';
-import OBS from '../obs/OBS';
+import LayoutPresets from '../LayoutPresets.js';
 import './FluidInput';
 import './DropdownButton.js';
-
-let presets = Config.get('layout-presets') || [];
-
-async function getSceneSourcesStates() {
-    const state = OBS.getState();
-    const currentScene = state.currentScene;
-    const scene = state.scenes.find(s => s.name == currentScene);
-    const sources = scene.sources;
-    const transforms = sources.map(({ name }) => {
-        return Transitions.getState(name).then(source => {
-            source.scene = scene.name;
-            return source;
-        });
-    })
-    return Promise.all(transforms);
-}
-
-async function saveNewPreset() {
-    const sceneTransforms = await getSceneSourcesStates();
-    sceneTransforms.unshift("Layout Preset " + (presets.length + 1));
-    presets.push(sceneTransforms);
-    savePresets();
-}
-
-function savePresets() {
-    Config.set('layout-presets', presets);
-}
-
-function deletePreset(index) {
-    presets.splice(index, 1);
-    savePresets();
-}
 
 export default class ScenePresets extends DockTab {
 
@@ -153,9 +120,10 @@ export default class ScenePresets extends DockTab {
     }
 
     render() {
+        const presets = LayoutPresets.getPresets();
 
         return html`
-            <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+            <link href="./material-icons.css" rel="stylesheet">
 
             <obs-dock-tab-section section-title="Controls">
                 <div class="row">
@@ -175,14 +143,8 @@ export default class ScenePresets extends DockTab {
                     ${presets.map((preset, i) => {
                         return html`
                             <div class="layout-preset-item">
-                                <div class="item-button" @click="${async () => {
-                                    const easingFunc = Easing[this.easingSelect.value.value];
-                                    const length = this.transitionLengthInput.value;
-
-                                    for(let source of preset.slice(1)) {
-                                        const state = await Transitions.getState(source.name);
-                                        Transitions.transitionSource(state.currentScene, source.name, state, source, easingFunc, length);
-                                    }
+                                <div class="item-button" @click="${() => {
+                                    LayoutPresets.playPreset(preset, this.easingSelect.value.value, this.transitionLengthInput.value);
                                 }}">
                                     <i class="material-icons">play_arrow</i>
                                 </div>
@@ -197,7 +159,7 @@ export default class ScenePresets extends DockTab {
                                         window.getSelection().empty();
                                     }}" @input="${e => {
                                         preset[0] = e.target.value;
-                                        savePresets();
+                                        LayoutPresets.savePresets();
                                     }}" @keydown="${e => {
                                         if(e.key == "Enter") {
                                             e.target.setAttribute('disabled', '');
@@ -206,7 +168,7 @@ export default class ScenePresets extends DockTab {
                                     }}"/>
                                 </div>
                                 <div class="item-button" @click="${e => {
-                                    deletePreset(i);
+                                    LayoutPresets.deletePreset(i);
                                     this.update();
                                 }}">
                                     <i class="material-icons" style="opacity: 0.5;">delete</i>
@@ -218,7 +180,7 @@ export default class ScenePresets extends DockTab {
 
                 <button @click="${async () => {
                     try {
-                        await saveNewPreset();
+                        await LayoutPresets.saveNewPreset();
                     } catch(err) {
                         console.error(err);
                     }

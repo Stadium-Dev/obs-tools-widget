@@ -1,6 +1,32 @@
-import { css, html } from 'https://cdn.skypack.dev/lit-element@2.4.0';
+import { css, html } from 'lit-element';
 import Config from '../Config.js';
 import DockTab from './DockTab.js';
+import LayoutPresets from '../LayoutPresets.js';
+import OBS from '../obs/OBS';
+
+const Action = {
+    SCENE_SWITCH: 0,
+    TRIGGER_PRESET: 1,
+}
+
+const binds = Config.get('midi-binds') || [
+    // { midi: 156, action: Action.SCENE_SWITCH, itemId: 0 },
+    { midi: 157, action: Action.TRIGGER_PRESET, itemId: 0 },
+];
+
+function createBind() {
+    binds.push({ midi: 157, action: Action.SCENE_SWITCH, itemId: 0 });
+    saveBinds();
+}
+
+function saveBinds() {
+    Config.set('midi-binds', binds);
+}
+
+function deleteBind(bind) {
+    binds.splice(binds.indexOf(bind), 1);
+    saveBinds();
+}
 
 export default class MidiSceneSwitcher extends DockTab {
 
@@ -25,7 +51,7 @@ export default class MidiSceneSwitcher extends DockTab {
             }
             .binding {
                 display: grid;
-                grid-template-columns: 1.2fr 0.75fr auto;
+                grid-template-columns: 1fr 1.2fr 1fr auto;
                 grid-auto-rows: 32px;
                 grid-gap: 4px;
                 align-items: center;
@@ -39,6 +65,9 @@ export default class MidiSceneSwitcher extends DockTab {
             }
             .binding:not(:last-child) {
                 border-bottom: 1px solid #1a1a1a;
+            }
+            .binding.header:hover { 
+                background: transparent;
             }
             .binding.header {
                 font-size: 13px;
@@ -84,52 +113,80 @@ export default class MidiSceneSwitcher extends DockTab {
         `;
     }
 
+    constructor() {
+        super();
+
+        OBS.on('ready', e => {
+            this.update();
+        })
+    }
+
+    createBind() {
+        createBind();
+        this.update();
+    }
+
     render() {
-        const binds = [
-            1,
-            2
+        const scenes = OBS.getState().scenes.map(scene => {
+            return { name: scene.name, value: scene.name }
+        }) || [];
+        const presets = LayoutPresets.getPresets().map(preset => {
+            return { name: preset[0], value: preset[0] }
+        }) || [];
+        const actions = [
+            { name: "Switch Scene", value: Action.SCENE_SWITCH },
+            { name: "Trigger Preset", value: Action.TRIGGER_PRESET }
         ];
 
         return html`
-            <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+            <link href="./material-icons.css" rel="stylesheet">
 
             <obs-dock-tab-section section-title="Midi Scene Switcher">
                 <div class="list">
                     <div class="binding header">
+                        <div>Midi</div>
                         <div>Action</div>
                         <div>Item</div>
-                        <div>Midi</div>
                     </div>
 
                     ${binds.map(bind => {
                         return html`
                             <div class="binding">
-                                <dropdown-button class="Action" .options="${[
-                                    { name: "Midi", value: 0 },
-                                    { name: "Scene Switched", value: 0 },
-                                    { name: "Timer Finished", value: 0 },
-                                ]}"></dropdown-button>
+                                <div class="midi-button">${bind.midi}</div>
 
-                                <dropdown-button class="Action" .options="${[
-                                    { name: "Switch Scene", value: 0 },
-                                    { name: "Trigger Preset", value: 0 }
-                                ]}"></dropdown-button>
+                                <dropdown-button class="Action" .options="${actions}" .value="${bind.action}" @change="${e => {
+                                    bind.action = e.target.value.value;
+                                    // this.update();
+                                }}"></dropdown-button>
 
-                                <dropdown-button class="Action" .options="${[
-                                    { name: "Display 1", value: 0 },
-                                    { name: "Display 2", value: 0 }
-                                ]}"></dropdown-button>
-
-                                <div class="midi-button">156</div>
+                                ${( bind.action == Action.SCENE_SWITCH ? (
+                                    html`
+                                        <dropdown-button class="Action" .options="${scenes}" .value="${bind.itemId}" @change="${e => {
+                                            bind.itemId = e.target.value;
+                                            saveBinds();
+                                        }}"></dropdown-button>
+                                    `
+                                ) : "")}
+                                ${( bind.action == Action.TRIGGER_PRESET ? (
+                                    html`
+                                        <dropdown-button class="Action" .options="${presets}" .value="${bind.itemId}" @change="${e => {
+                                            bind.itemId = e.target.value;
+                                            saveBinds();
+                                        }}"></dropdown-button>
+                                    `
+                                ) : "")}
 
                                 <div class="del-button">
-                                    <i class="material-icons" style="opacity: 0.5;">delete</i>
+                                    <i class="material-icons" style="opacity: 0.5;" @click="${e => {
+                                        deleteBind(bind);
+                                        this.update();
+                                    }}">delete</i>
                                 </div>
                             </div>
                         `;
                     })}
 
-                    <button class="create-btn">Create Bind</button>
+                    <button class="create-btn" @click="${() => this.createBind()}">Create Bind</button>
                 </div>
             </obs-dock-tab-section>
         `;

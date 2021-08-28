@@ -1,4 +1,4 @@
-import { css, html } from 'https://cdn.skypack.dev/lit-element@2.4.0';
+import { css, html } from 'lit-element';
 import Config from '../Config.js';
 import Streamlabs from '../Streamlabs.js';
 import DockTab from './DockTab.js';
