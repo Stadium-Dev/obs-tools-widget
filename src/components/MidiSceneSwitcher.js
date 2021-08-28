@@ -25,12 +25,14 @@ export default class MidiSceneSwitcher extends DockTab {
             }
             .binding {
                 display: grid;
-                grid-template-columns: 1.2fr 1fr 0.75fr auto;
+                grid-template-columns: 1.2fr 0.75fr auto;
+                grid-auto-rows: 32px;
                 grid-gap: 4px;
                 align-items: center;
-                height: 32px;
+                height: auto;
                 position: relative;
                 border-radius: 4px;
+                margin-bottom: 8px;
             }
             .binding:hover {
                 background: rgba(255, 255, 255, 0.025);

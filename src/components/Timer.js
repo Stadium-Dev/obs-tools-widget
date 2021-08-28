@@ -139,6 +139,21 @@ export default class Timer extends DockTab {
             .inputs label {
                 display: inline;
             }
+            .timer-settings {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+            .timer-settings input-switch {
+                margin-left: 10px;
+            }
+            .timer-autoreset {
+                margin-top: 10px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
         `;
     }
 
@@ -268,15 +283,19 @@ export default class Timer extends DockTab {
 
     resetTimer() {
         if(confirm('Reset timer to start time?')) {
-            const startTime = Config.get('start-time');
-            this.time = startTime;
-            this.elapsedTime = 0;
-            this.updateOverlayTimer();
-            this.update();
-
-            Config.set('sub-counter', 0);
-            Config.set('donation-counter', 0);
+            this.forceReset();
         }
+    }
+
+    forceReset() {
+        const startTime = Config.get('start-time');
+        this.time = startTime;
+        this.elapsedTime = 0;
+        this.updateOverlayTimer();
+        this.update();
+
+        Config.set('sub-counter', 0);
+        Config.set('donation-counter', 0);
     }
 
     onTimerEnd() {
@@ -286,6 +305,10 @@ export default class Timer extends DockTab {
             if(sceneToSwitchTo && sceneToSwitchTo !== "none") {
                 OBS.setCurrentScene(sceneToSwitchTo);
             }
+        }
+        if(this.shadowRoot.querySelector('#autoreset').checked) {
+            this.forceReset();
+            setTimeout(() => this.pausePlayTimer(), 1000);
         }
     }
 
@@ -387,16 +410,17 @@ export default class Timer extends DockTab {
                 </div> 
             </obs-dock-tab-section>
             
-            <obs-dock-tab-section section-title="Start Time">
-
-                <div>
-                    Autoreset timer
-                    <input type="checkbox" />
+            <obs-dock-tab-section section-title="Timer Settings">
+                <div class="timer-settings">
+                    <div>
+                        <gyro-fluid-input id="startTimeH" min="0" max="999" steps="1" @change="${e => updateStartTime()}" value="${hours}" suffix="h"></gyro-fluid-input>
+                        <gyro-fluid-input id="startTimeM" min="0" max="59" steps="1" @change="${e => updateStartTime()}" value="${minutes}" suffix="m"></gyro-fluid-input>
+                        <gyro-fluid-input id="startTimeS" min="0" max="59" steps="1" @change="${e => updateStartTime()}" value="${seconds}" suffix="s"></gyro-fluid-input>
+                    </div>
+                    <!-- <div class="timer-autoreset">
+                        Autoreset timer <input-switch id="autoreset" type="checkbox" />
+                    </div> -->
                 </div>
-
-                <gyro-fluid-input id="startTimeH" min="0" max="999" steps="1" @change="${e => updateStartTime()}" value="${hours}" suffix="h"></gyro-fluid-input>
-                <gyro-fluid-input id="startTimeM" min="0" max="59" steps="1" @change="${e => updateStartTime()}" value="${minutes}" suffix="m"></gyro-fluid-input>
-                <gyro-fluid-input id="startTimeS" min="0" max="59" steps="1" @change="${e => updateStartTime()}" value="${seconds}" suffix="s"></gyro-fluid-input>
             </obs-dock-tab-section>
 
             <obs-dock-tab-section optional section-title="Subathon Features"
