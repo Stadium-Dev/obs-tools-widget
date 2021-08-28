@@ -15,6 +15,7 @@
 - [ ] Midi Scene Switching and trigger layout presets
 - [ ] Add Custom Overlays
 - [ ] Scene/Source Presets like the overlay. creating sources with socket.
+- [ ] Overlay properties (with https://github.com/Palakis/obs-websocket/blob/4.x-current/docs/generated/protocol.md#sceneitemselected)
 
 Use graphcms as a dynamic overlay registry.
 Add overlay with a button.
