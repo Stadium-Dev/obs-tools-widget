@@ -11,3 +11,4 @@
 - [x] Subathon timer tools
 - [ ] Connect to twitch for PubSub integration and more (enables Channel Point Rewards)
 - [x] Video Assist features (with OBS flag "--use-fake-ui-for-media-stream")
+- [ ] Overlay properties
