@@ -1,5 +1,4 @@
 import { css, html } from 'lit-element';
-import Config from '../Config.js';
 import DockTab from './DockTab.js';
 import OBS from '../obs/OBS';
 
@@ -18,6 +17,7 @@ export default class OverlayProperties extends DockTab {
         this.selection = [];
 
         OBS.on('selection', e => {
+            console.log(e);
             switch (e.updateType) {
                 case "SceneItemDeselected":
                     let index = 0;
@@ -30,16 +30,37 @@ export default class OverlayProperties extends DockTab {
                     }
                     break;
                 case "SceneItemSelected":
+                    console.log(e);
                     this.selection.push({
                         itemId: e.itemId,
                         itemName: e.itemName,
                     });
+                    this.handleSelection(this.selection);
                     break;
             }
             requestAnimationFrame(() => {
                 this.update();
             })
         })
+    }
+
+    handleSelection(selection) {
+        for(let item of selection) {
+            console.log(item);
+            OBS.getSourceSettings(item).then(settings => {
+                console.log(settings);
+            })
+
+            const bc = new BroadcastChannel('obs-tool-com');
+            bc.postMessage({ type:'getProperties' });
+
+            bc.onmessage = ev => {
+                console.log(ev);
+                // get properties
+                // render ui
+                // send changes to overlay
+            }
+        }
     }
 
     render() {

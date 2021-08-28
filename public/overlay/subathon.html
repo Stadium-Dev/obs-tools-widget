@@ -63,6 +63,27 @@
                 }
             }
         }
+
+        const properties = {
+            color: {
+                type: "color",
+                default: "#333",
+                value: "#555",
+            }
+        }
+
+        function handlePropertyChange(prop, value) {
+
+        }
+
+        const toolCom = new BroadcastChannel('obs-tool-com');
+        toolCom.onmessage = ev => {
+            console.log(ev);
+            // respond to property request
+            // react to prop change requests
+            // save properties in localstorage or what ever
+            // handle property change
+        }
     </script>
 </body>
 </html>

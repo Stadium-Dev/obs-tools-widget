@@ -15,8 +15,11 @@ export default class LayoutPresets {
         const easingFunc = Easing[easing];
 
         for(let source of preset.slice(1)) {
-            const state = await Transitions.getState(source.name);
-            Transitions.transitionSource(state.currentScene, source.name, state, source, easingFunc, length);
+            Transitions.getState(source.name).then(state => {
+                Transitions.transitionSource(state.currentScene, source.name, state, source, easingFunc, length);
+            }).catch(err => {
+                console.log('Error transitioning source, ', err);
+            })
         }
     }
 
