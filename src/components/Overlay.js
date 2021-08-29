@@ -1,7 +1,9 @@
 import { css, html } from 'lit-element';
 import DockTab from './DockTab.js';
 import OBS from '../obs/OBS';
+import './ColorPicker';
 
+const bc = new BroadcastChannel('obs-tool-com');
 
 export default class Timer extends DockTab {
 
@@ -20,6 +22,7 @@ export default class Timer extends DockTab {
                 padding: 8px 4px;
                 font-size: 12.5px;
                 cursor: grab;
+                border-radius: 4px;
             }
             .drag-and-button:not(:last-child) {
                 border-bottom: 1px solid #1a1a1a;
@@ -42,7 +45,15 @@ export default class Timer extends DockTab {
                 min-height: 150px;
             }
             .properties {
-                margin-top: 20px;
+                
+            }
+            .placeholder {
+                text-align: center;
+                width: 100%;
+                opacity: 0.5;
+            }
+            gyro-fluid-input {
+                width: 150px;
             }
         `;
     }
@@ -63,7 +74,6 @@ export default class Timer extends DockTab {
                         }
                         index++;
                     }
-                    this.properties = null;
                     this.update();
                     break;
                 case "SceneItemSelected":
@@ -78,40 +88,83 @@ export default class Timer extends DockTab {
                 this.update();
             })
         })
+
+        bc.onmessage = ({ data }) => {
+            if(data.type == "properties") {
+                this.handleProperties(data.data);
+            }
+        }
+    }
+
+    handleProperties(data) {
+        const props = data.properties;
+
+        for(let selected of this.selection) {
+            if(selected.source == data.source) {
+                selected.props = props;
+            }
+        }
+
+        this.update();
     }
 
     handleSelection(selection) {
         for(let item of selection) {
             item.name = item.itemName;
 
-            const bc = new BroadcastChannel('obs-tool-com');
+            const source = item;
 
-            OBS.getSourceSettings(item).then(settings => {
+            OBS.getSourceSettings(source).then(settings => {
                 if(settings.url) {
                     bc.postMessage({ type:'getProperties', data: {
                         source: settings.url
                     } });
+
+                    source.source = settings.url;
                 }
             });
+        }
+    }
 
-            bc.onmessage = ({ data }) => {
-                if(data.type == "properties") {
-                    const source = data.data.source;
-                    const props = data.data;
-                    
-                    this.properties = {
-                        item: item.itemName,
-                        source,
-                        props
-                    }
+    sendPropertyUpdate(propId, value) {
+        bc.postMessage({ type: "property.change", data: { property: propId, value } });
+    }
 
-                    this.update();
-                }
-                // console.log(ev);
-                // get properties
-                // render ui
-                // send changes to overlay
-            }
+    renderProperty(propId, prop) {
+        switch(prop.type) {
+            case "number":
+                return html`
+                    <div class="row">
+                        <label>${prop.name}</label>
+                        <div>
+                            <gyro-fluid-input min="0" max="100" .value="${prop.value}" @input="${e => {
+                                this.sendPropertyUpdate(propId, e.target.value);
+                            }}"></gyro-fluid-input>
+                        </div>
+                    </div>
+                `;
+            case "color":
+                return html`
+                    <div class="row">
+                        <label>${prop.name}</label>
+                        <div>
+                            <color-picker .hex="${prop.value}" @input="${e => {
+                                this.sendPropertyUpdate(propId, e.target.hex);
+                            }}"></color-picker>
+                        </div>
+                    </div>
+                `;
+            default:
+                return html`
+                    <div class="row">
+                        <label>${prop.name}</label>
+                        <div>
+                            <input value="${prop.value}" @input="${e => {
+                                this.sendPropertyUpdate(propId, e.target.value);
+                            }}"/>
+                        </div>
+                    </div>
+                `;
         }
     }
 
@@ -136,17 +189,26 @@ export default class Timer extends DockTab {
             </obs-dock-tab-section>
 
             <obs-dock-tab-section section-title="Overlay Properties">
-                <div>
+                <!-- <div>
                     ${this.selection.map(item => {
-                        return html`
-                            <div>
-                                ${JSON.stringify(item)}
-                            </div>
-                        `;
+                        return html`<div>${JSON.stringify(item)}</div>`;
                     })}
-                </div>
+                </div> -->
                 <div class="properties">
-                    ${JSON.stringify(this.properties, null, '  ')}
+                    ${this.selection.map(item => {
+                        if(item.props) {
+                            return html`
+                                <div>${item.itemName}</div>
+                                ${Object.keys(item.props).map(key => this.renderProperty(key, item.props[key]))}
+                            `;
+                        }
+                    })}
+
+                    ${this.selection.length == 0 ? html`
+                        <div class="placeholder">
+                                Nothing Selected
+                        </div>
+                    ` : ""}
                 </div>
             </obs-dock-tab-section>
         `;

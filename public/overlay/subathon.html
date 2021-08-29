@@ -71,46 +71,41 @@
                 }
             }
         }
+    </script>
+    <script type="module">
+        import Provider from './libs/property-provider.js';
 
-        // Overlay Properties
-        const properties = {
-            color: {
+        const propSaveId = "subathon-overlay-properties-v1";
+        let props = {
+            textColor: {
+                name: "Text Color",
                 type: "color",
                 default: "#333",
-                value: "#555",
-            }
+                value: "#333",
+            },
         }
 
-        const source = location.origin + location.pathname;
-
-        function handlePropertyChange(prop, value) {
-
-        }
-
-        function broadcastProperties() {
-            toolCom.postMessage({
-                type: "properties",
-                data: {
-                    source: source,
-                    properties: properties
+        if (localStorage.getItem(propSaveId)) {
+            const save = JSON.parse(localStorage.getItem(propSaveId));
+            for (let key in props) {
+                if(save[key]) {
+                    props[key].value = save[key].value;
                 }
-            });
+            }
         }
 
-        const toolCom = new BroadcastChannel('obs-tool-com');
-        toolCom.onmessage = ({ data }) => {
-            if (data.type == "getProperties" && data.data.source == source) {
-                broadcastProperties();
-            }
-            if (data.type == "property.change") {
-                handlePropertyChange(data.data.property, data.data.value);
-            }
+        Provider.setProperties(props);
 
-            // respond to property request
-            // react to prop change requests
-            // save properties in localstorage or what ever
-            // handle property change
+        Provider.onPropertyUpdate(e => {
+            localStorage.setItem(propSaveId, JSON.stringify(props));
+            updateUI();
+        })
+
+        function updateUI() {
+            const ele = document.querySelector('obs-overlay-hud');
+            ele.style.setProperty('--text-color', props.textColor.value);
         }
+
     </script>
 </body>
 

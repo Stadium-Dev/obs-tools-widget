@@ -7,6 +7,8 @@ export default class OverlayHud extends LitElement {
         return css`
 
             :host {
+                --text-color: #eee;
+
                 display: block;
                 position: fixed;
                 top: 0;
@@ -17,9 +19,9 @@ export default class OverlayHud extends LitElement {
                 display: flex;
                 justify-content: center;
                 align-items: flex-end;
-                color: #eee;
                 font-family: 'Lato';
                 font-size: 28px;
+                color: var(--text-color);
             }
             .container::after,
             .container::before {
@@ -71,7 +73,7 @@ export default class OverlayHud extends LitElement {
         super();
 
         this.time = 60 * 60 * 12;
-        this.timerPlaying = true;
+        this.timerPlaying = false;
 
         if(Config.get('timer')) {
             this.time = Config.get('timer');
