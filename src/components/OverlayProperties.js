@@ -17,7 +17,6 @@ export default class OverlayProperties extends DockTab {
         this.selection = [];
 
         OBS.on('selection', e => {
-            console.log(e);
             switch (e.updateType) {
                 case "SceneItemDeselected":
                     let index = 0;
@@ -30,23 +29,20 @@ export default class OverlayProperties extends DockTab {
                     }
                     break;
                 case "SceneItemSelected":
-                    console.log(e);
                     this.selection.push({
                         itemId: e.itemId,
                         itemName: e.itemName,
                     });
-                    this.handleSelection(this.selection);
                     break;
             }
-            requestAnimationFrame(() => {
-                this.update();
-            })
+            this.update();
+            this.handleSelection(this.selection);
         })
     }
 
     handleSelection(selection) {
+        console.log(selection);
         for(let item of selection) {
-            console.log(item);
             OBS.getSourceSettings(item).then(settings => {
                 console.log(settings);
             })

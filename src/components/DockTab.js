@@ -114,6 +114,7 @@ export default class DockTab extends LitElement {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
+                flex-wrap: wrap;
                 margin-bottom: 8px;
                 margin-top: 8px;
                 margin-left: 10px;

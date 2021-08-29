@@ -41,6 +41,9 @@ export default class Timer extends DockTab {
             .overlay-section {
                 min-height: 150px;
             }
+            .properties {
+                margin-top: 20px;
+            }
         `;
     }
 
@@ -60,6 +63,8 @@ export default class Timer extends DockTab {
                         }
                         index++;
                     }
+                    this.properties = null;
+                    this.update();
                     break;
                 case "SceneItemSelected":
                     this.selection.push({
@@ -69,9 +74,45 @@ export default class Timer extends DockTab {
                     break;
             }
             requestAnimationFrame(() => {
+                this.handleSelection(this.selection);
                 this.update();
             })
         })
+    }
+
+    handleSelection(selection) {
+        for(let item of selection) {
+            item.name = item.itemName;
+
+            const bc = new BroadcastChannel('obs-tool-com');
+
+            OBS.getSourceSettings(item).then(settings => {
+                if(settings.url) {
+                    bc.postMessage({ type:'getProperties', data: {
+                        source: settings.url
+                    } });
+                }
+            });
+
+            bc.onmessage = ({ data }) => {
+                if(data.type == "properties") {
+                    const source = data.data.source;
+                    const props = data.data;
+                    
+                    this.properties = {
+                        item: item.itemName,
+                        source,
+                        props
+                    }
+
+                    this.update();
+                }
+                // console.log(ev);
+                // get properties
+                // render ui
+                // send changes to overlay
+            }
+        }
     }
 
     render() {
@@ -103,6 +144,9 @@ export default class Timer extends DockTab {
                             </div>
                         `;
                     })}
+                </div>
+                <div class="properties">
+                    ${JSON.stringify(this.properties, null, '  ')}
                 </div>
             </obs-dock-tab-section>
         `;

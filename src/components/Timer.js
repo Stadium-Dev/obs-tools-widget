@@ -139,15 +139,6 @@ export default class Timer extends DockTab {
             .inputs label {
                 display: inline;
             }
-            .timer-settings {
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-            }
-            .timer-settings input-switch {
-                margin-left: 10px;
-            }
             .timer-autoreset {
                 margin-top: 10px;
                 display: flex;
@@ -412,14 +403,14 @@ export default class Timer extends DockTab {
             
             <obs-dock-tab-section section-title="Timer Settings">
                 <div class="timer-settings">
-                    <div>
-                        <gyro-fluid-input id="startTimeH" min="0" max="999" steps="1" @change="${e => updateStartTime()}" value="${hours}" suffix="h"></gyro-fluid-input>
-                        <gyro-fluid-input id="startTimeM" min="0" max="59" steps="1" @change="${e => updateStartTime()}" value="${minutes}" suffix="m"></gyro-fluid-input>
-                        <gyro-fluid-input id="startTimeS" min="0" max="59" steps="1" @change="${e => updateStartTime()}" value="${seconds}" suffix="s"></gyro-fluid-input>
+                    <div class="row">
+                        <label>Start</label>
+                        <div>
+                            <gyro-fluid-input id="startTimeH" min="0" max="999" steps="1" @change="${e => updateStartTime()}" value="${hours}" suffix="h"></gyro-fluid-input>
+                            <gyro-fluid-input id="startTimeM" min="0" max="59" steps="1" @change="${e => updateStartTime()}" value="${minutes}" suffix="m"></gyro-fluid-input>
+                            <gyro-fluid-input id="startTimeS" min="0" max="59" steps="1" @change="${e => updateStartTime()}" value="${seconds}" suffix="s"></gyro-fluid-input>
+                        </div>
                     </div>
-                    <!-- <div class="timer-autoreset">
-                        Autoreset timer <input-switch id="autoreset" type="checkbox" />
-                    </div> -->
                 </div>
             </obs-dock-tab-section>
 
