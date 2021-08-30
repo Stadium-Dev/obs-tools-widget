@@ -88,15 +88,35 @@
                 default: "#333",
                 value: "#333",
             },
+            showSubs: {
+                name: "Show sub count",
+                type: "boolean",
+                default: 0,
+                value: 0,
+            },
+            showDonos: {
+                name: "Show donated amount",
+                type: "boolean",
+                default: 0,
+                value: 0,
+            },
         }
         
         const store = new PropertyStorage(propSaveId, props);
 
         Provider.onPropertyUpdate(e => {
             // update ui
+            updateUI();
+        })
+
+        function updateUI() {
             const ele = document.querySelector('obs-overlay-hud');
             ele.style.setProperty('--text-color', props.textColor.value);
-        })
+            ele.style.setProperty('--display-left', props.showSubs.value === 1 ? "block" : "none");
+            ele.style.setProperty('--display-right', props.showDonos.value === 1 ? "block" : "none");
+        }
+
+        updateUI();
 
     </script>
 </body>

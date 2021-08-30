@@ -39,6 +39,7 @@ export default class OverlayHud extends LitElement {
     constructor() {
         super();
 
+        this.text = "Start: ";
         this.time = 60 * 60 * 12;
         this.timerPlaying = true;
 
@@ -133,7 +134,7 @@ export default class OverlayHud extends LitElement {
         return html`
             <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400&display=swap" rel="stylesheet">
             <div class="timer">
-                <span class="prefix">Startet in</span>
+                <span class="prefix">${this.text}</span>
                 <span>${hours.toFixed(0).padStart(2, "0")}</span>
                 <span class="seperator">:</span>
                 <span>${minutes.toFixed(0).padStart(2, "0")}</span>

@@ -69,6 +69,17 @@ export default class Overlay extends DockTab {
 
     renderProperty(propId, prop) {
         switch(prop.type) {
+            case "boolean":
+                return html`
+                    <div class="row">
+                        <label>${prop.name}</label>
+                        <div>
+                            <input-switch .checked="${prop.value === 1 ? true : false}" @change="${e => {
+                                propSender.postProperty(propId, e.target.checked ? 1 : 0);
+                            }}"></input-switch>
+                        </div>
+                    </div>
+                `;
             case "number":
                 return html`
                     <div class="row">

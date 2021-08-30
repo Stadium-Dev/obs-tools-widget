@@ -69,11 +69,13 @@ export default class OverlayHud extends LitElement {
                 position: absolute;
                 right: calc(50% - 300px);
                 text-align: right;
+                display: var(--display-left, block);
             }
             .right {
                 position: absolute;
                 left: calc(50% - 300px);
                 text-align: left;
+                display: var(--display-right, block);
             }
             .left, .right {
                 font-size: 24px;
