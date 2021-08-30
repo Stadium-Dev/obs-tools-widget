@@ -87,6 +87,8 @@ export default class OverlayHud extends LitElement {
     constructor() {
         super();
 
+        this.prefixString = "T-";
+
         this.subs = 0;
         this.donated = 0;
 
@@ -188,7 +190,7 @@ export default class OverlayHud extends LitElement {
                 <div class="background"></div>
             </div>
             <div class="timer">
-                <span class="prefix">T-</span>
+                <span class="prefix">${this.prefixString}</span>
                 <span>${hours.toFixed(0).padStart(2, "0")}</span>
                 <span class="seperator">:</span>
                 <span>${minutes.toFixed(0).padStart(2, "0")}</span>

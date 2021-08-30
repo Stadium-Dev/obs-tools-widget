@@ -82,11 +82,17 @@
         const propSaveId = "subathon-overlay-properties-v1";
 
         const props = {
+            prefix: {
+                name: "Prefix",
+                type: "string",
+                default: "T-",
+                value: "T-",
+            },
             textColor: {
                 name: "Text Color",
                 type: "color",
-                default: "#333",
-                value: "#333",
+                default: "#eee",
+                value: "#eee",
             },
             showSubs: {
                 name: "Show sub count",
@@ -114,6 +120,8 @@
             ele.style.setProperty('--text-color', props.textColor.value);
             ele.style.setProperty('--display-left', props.showSubs.value === 1 ? "block" : "none");
             ele.style.setProperty('--display-right', props.showDonos.value === 1 ? "block" : "none");
+            ele.prefixString = props.prefix.value;
+            ele.update();
         }
 
         updateUI();
