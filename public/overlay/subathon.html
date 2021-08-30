@@ -6,9 +6,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400&display=swap" rel="stylesheet">
     <style>
-        /* body {
+        body {
             background: #777;
-        } */
+        }
         .timer-action {
             position: absolute;
             top: 120%;
@@ -63,6 +63,10 @@
             if (type == "timer") {
                 const time = data.time;
                 const playstate = data.playstate;
+
+                timerHud.subs = data.subs;
+                timerHud.donated = data.donated;
+
                 timerHud.setTime(time);
                 if (playstate == 0) {
                     timerHud.pauseTimer();

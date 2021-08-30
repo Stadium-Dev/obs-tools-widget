@@ -5,7 +5,6 @@ export default class OverlayHud extends LitElement {
 
     static get styles() {
         return css`
-
             :host {
                 --text-color: #eee;
 
@@ -31,7 +30,7 @@ export default class OverlayHud extends LitElement {
                 position: absolute;
                 top: 0px;
                 left: 0px;
-                height: 138%;
+                height: 150%;
                 width: 1px;
                 background: #eee;
                 transform-origin: 0 0;
@@ -48,9 +47,9 @@ export default class OverlayHud extends LitElement {
                 top: 0;
                 left: 0;
                 width: 100%;
-                height: 100%;
+                height: 105%;
                 clip-path: polygon(0 0, 100% 0, calc(100% - 40px) 100%, 40px 100%);
-                background: linear-gradient(180deg, hsl(0deg 0% 0% / 50%), hsl(0deg 0% 0% / 0%));
+                background: linear-gradient(180deg, hsl(0deg 0% 0% / 75%), hsl(0deg 0% 0% / 0%));
                 z-index: -1;
             }
             .timer {
@@ -66,11 +65,28 @@ export default class OverlayHud extends LitElement {
             .sub-counter {
                 
             }
+            .left {
+                position: absolute;
+                right: calc(50% - 300px);
+                text-align: right;
+            }
+            .right {
+                position: absolute;
+                left: calc(50% - 300px);
+                text-align: left;
+            }
+            .left, .right {
+                font-size: 24px;
+                white-space: nowrap;
+            }
         `;
     }
 
     constructor() {
         super();
+
+        this.subs = 0;
+        this.donated = 0;
 
         this.time = 60 * 60 * 12;
         this.timerPlaying = false;
@@ -165,6 +181,7 @@ export default class OverlayHud extends LitElement {
 
         return html`
             <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400&display=swap" rel="stylesheet">
+            <div class="left">${this.subs}</div>
             <div class="container">
                 <div class="background"></div>
             </div>
@@ -176,6 +193,7 @@ export default class OverlayHud extends LitElement {
                 <span class="seperator">:</span>
                 <span>${seconds.toFixed(0).padStart(2, "0")}</span>
             </div>
+            <div class="right">${this.donated} €</div>
             <slot></slot>
         `;
     }

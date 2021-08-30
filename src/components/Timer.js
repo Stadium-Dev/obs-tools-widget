@@ -266,6 +266,8 @@ export default class Timer extends DockTab {
 
     updateOverlayTimer() {
         bc.postMessage({ 
+            subs: subs,
+            donated: donated,
             type:'timer', 
             time: this.time,
             playstate: this.timerPlaying
