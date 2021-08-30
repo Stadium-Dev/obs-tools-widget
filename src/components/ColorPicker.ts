@@ -124,12 +124,12 @@ export default class ColorPicker extends LitElement {
                 display: block;
                 -webkit-user-drag: none;
                 user-select: none;
-                padding: 15px;
+                padding: 0px;
                 width: 185px;
                 border-radius: 6px;
                 background: var(--gyro-pallate-panel-content);
                 box-sizing: border-box;
-                margin-right: 0;
+                margin: 10px 8px;
                 width: 100%;
 
                 --cursor-width: 10px;
@@ -504,7 +504,7 @@ export default class ColorPicker extends LitElement {
         canvas.height = 1;
 
         for(let x = 0; x < canvas.width; x++) {
-            context.fillStyle = `hsl(${x}, ${this.saturation}%, ${this.lightness}%)`;
+            context.fillStyle = `hsl(${x}, 75%, 50%)`;
             context.fillRect(x, 0, 1, canvas.height);
         }
 
