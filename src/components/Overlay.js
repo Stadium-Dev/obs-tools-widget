@@ -3,7 +3,14 @@ import DockTab from './DockTab.js';
 import OBS from '../obs/OBS';
 import './ColorPicker';
 
+const overlays = [
+    { name: "Timer Overlay", url: "../overlay/timer.html?layer-name=Timer%20Overlay&layer-width=1920&layer-height=1080" },
+    { name: "Subathon Overlay", url: "../overlay/subathon.html?layer-name=Subathon%20Overlay&layer-width=1920&layer-height=1080" }
+    { name: "Labels Overlay", url: "../overlay/labels.html?layer-name=Subathon%20Overlay&layer-width=1920&layer-height=1080" }
+];
+
 const bc = new BroadcastChannel('obs-tool-com');
+
 
 export default class Timer extends DockTab {
 
@@ -169,11 +176,6 @@ export default class Timer extends DockTab {
     }
 
     render() {
-        const overlays = [
-            { name: "Timer Overlay", url: "../overlay/timer.html?layer-name=Timer%20Overlay&layer-width=1920&layer-height=1080" },
-            { name: "Subathon Overlay", url: "../overlay/subathon.html?layer-name=Subathon%20Overlay&layer-width=1920&layer-height=1080" }
-        ];
-
         return html`
             <link href="./material-icons.css" rel="stylesheet">
             

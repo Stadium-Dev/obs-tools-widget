@@ -73,10 +73,11 @@
         }
     </script>
     <script type="module">
-        import Provider from './libs/property-provider.js';
+        import { Provider, PropertyStorage } from './libs/property-provider.js';
 
         const propSaveId = "subathon-overlay-properties-v1";
-        let props = {
+
+        const props = {
             textColor: {
                 name: "Text Color",
                 type: "color",
@@ -84,27 +85,14 @@
                 value: "#333",
             },
         }
-
-        if (localStorage.getItem(propSaveId)) {
-            const save = JSON.parse(localStorage.getItem(propSaveId));
-            for (let key in props) {
-                if(save[key]) {
-                    props[key].value = save[key].value;
-                }
-            }
-        }
-
-        Provider.setProperties(props);
+        
+        const store = new PropertyStorage(propSaveId, props);
 
         Provider.onPropertyUpdate(e => {
-            localStorage.setItem(propSaveId, JSON.stringify(props));
-            updateUI();
-        })
-
-        function updateUI() {
+            // update ui
             const ele = document.querySelector('obs-overlay-hud');
             ele.style.setProperty('--text-color', props.textColor.value);
-        }
+        })
 
     </script>
 </body>

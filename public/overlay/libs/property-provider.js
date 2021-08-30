@@ -39,7 +39,7 @@ class PropertyEvent extends Event {
     }
 }
 
-export default class Provider {
+export class Provider {
     
     static setProperties(props) {
         properties = props;
@@ -47,6 +47,27 @@ export default class Provider {
 
     static onPropertyUpdate(callback) {
         eventTarget.addEventListener('update', e => callback(e));
+    }
+
+}
+
+export class PropertyStorage {
+
+    constructor(propSaveId, props) {
+        if (localStorage.getItem(propSaveId)) {
+            const save = JSON.parse(localStorage.getItem(propSaveId));
+            for (let key in props) {
+                if(save[key]) {
+                    props[key].value = save[key].value;
+                }
+            }
+        }
+
+        Provider.setProperties(props);
+
+        Provider.onPropertyUpdate(e => {
+            localStorage.setItem(propSaveId, JSON.stringify(props));
+        })
     }
 
 }
