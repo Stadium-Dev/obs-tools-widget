@@ -1,5 +1,6 @@
 import { css, html } from 'lit-element';
 import Config from '../Config.js';
+import Overlays from '../Overlays.js';
 import DockTab from './DockTab.js';
 import OBS from '../OBS.js';
 
@@ -57,6 +58,18 @@ let getSelectedStandbyScene = () => {
     const select = ele.shadowRoot.querySelector('#standByScene');
     return select.value;
 };
+
+function updateToken(token) {
+    if(token != null) {
+        Config.set('1uckybot-websocket-token', token);
+
+        // tts overlay entry
+        const ttsUrl = `https://1uckybot.luckydye.de/overlay/?token=${token}&voice=Marlene&layer-name=1uckybot%20TTS%20overlay&layer-width=1920&layer-height=1080`;
+        Overlays.addOverlay('TTS', ttsUrl);
+    }
+}
+
+updateToken(Config.get('1uckybot-websocket-token'));
 
 export default class Luckybot extends DockTab {
 
@@ -117,7 +130,7 @@ export default class Luckybot extends DockTab {
                 <label>1uckybot Access Token</label>
                 <input value="${Config.get('1uckybot-websocket-token') || ""}" 
                     id="luckybotWebsocketToken"
-                    @change="${e => Config.set('1uckybot-websocket-token', e.target.value)}" 
+                    @change="${e => updateToken(e.target.value)}" 
                     class="full"
                     type="password" 
                     placeholder="1uckybot Token"/>

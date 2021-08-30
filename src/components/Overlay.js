@@ -1,18 +1,13 @@
 import { css, html } from 'lit-element';
 import DockTab from './DockTab.js';
-import OBS from '../obs/OBS';
+import Overlays from '../Overlays.js';
+import PropertySender from '../PropertySender.js';
 import './ColorPicker';
 
-const overlays = [
-    { name: "Timer Overlay", url: "../overlay/timer.html?layer-name=Timer%20Overlay&layer-width=1920&layer-height=1080" },
-    { name: "Subathon Overlay", url: "../overlay/subathon.html?layer-name=Subathon%20Overlay&layer-width=1920&layer-height=1080" }
-    { name: "Labels Overlay", url: "../overlay/labels.html?layer-name=Subathon%20Overlay&layer-width=1920&layer-height=1080" }
-];
-
-const bc = new BroadcastChannel('obs-tool-com');
+const propSender = new PropertySender();
 
 
-export default class Timer extends DockTab {
+export default class Overlay extends DockTab {
 
     static get styles() {
         return css`
@@ -58,6 +53,7 @@ export default class Timer extends DockTab {
                 text-align: center;
                 width: 100%;
                 opacity: 0.5;
+                margin: 8px 0;
             }
             gyro-fluid-input {
                 width: 150px;
@@ -68,73 +64,7 @@ export default class Timer extends DockTab {
     constructor() {
         super();
 
-        this.selection = [];
-
-        OBS.on('selection', e => {
-            switch (e.updateType) {
-                case "SceneItemDeselected":
-                    let index = 0;
-                    for(let item of this.selection) {
-                        if(item.itemId == e.itemId) {
-                            this.selection.splice(index, 1);
-                            break;
-                        }
-                        index++;
-                    }
-                    this.update();
-                    break;
-                case "SceneItemSelected":
-                    this.selection.push({
-                        itemId: e.itemId,
-                        itemName: e.itemName,
-                    });
-                    break;
-            }
-            requestAnimationFrame(() => {
-                this.handleSelection(this.selection);
-                this.update();
-            })
-        })
-
-        bc.onmessage = ({ data }) => {
-            if(data.type == "properties") {
-                this.handleProperties(data.data);
-            }
-        }
-    }
-
-    handleProperties(data) {
-        const props = data.properties;
-
-        for(let selected of this.selection) {
-            if(selected.source == data.source) {
-                selected.props = props;
-            }
-        }
-
-        this.update();
-    }
-
-    handleSelection(selection) {
-        for(let item of selection) {
-            item.name = item.itemName;
-
-            const source = item;
-
-            OBS.getSourceSettings(source).then(settings => {
-                if(settings.url) {
-                    bc.postMessage({ type:'getProperties', data: {
-                        source: settings.url
-                    } });
-
-                    source.source = settings.url;
-                }
-            });
-        }
-    }
-
-    sendPropertyUpdate(propId, value) {
-        bc.postMessage({ type: "property.change", data: { property: propId, value } });
+        propSender.onUpdate(() => this.update());
     }
 
     renderProperty(propId, prop) {
@@ -145,7 +75,7 @@ export default class Timer extends DockTab {
                         <label>${prop.name}</label>
                         <div>
                             <gyro-fluid-input min="0" max="100" .value="${prop.value}" @input="${e => {
-                                this.sendPropertyUpdate(propId, e.target.value);
+                                propSender.postProperty(propId, e.target.value);
                             }}"></gyro-fluid-input>
                         </div>
                     </div>
@@ -156,7 +86,7 @@ export default class Timer extends DockTab {
                         <label>${prop.name}</label>
                         <div>
                             <color-picker .hex="${prop.value}" @input="${e => {
-                                this.sendPropertyUpdate(propId, e.target.hex);
+                                propSender.postProperty(propId, e.target.hex);
                             }}"></color-picker>
                         </div>
                     </div>
@@ -167,7 +97,7 @@ export default class Timer extends DockTab {
                         <label>${prop.name}</label>
                         <div>
                             <input value="${prop.value}" @input="${e => {
-                                this.sendPropertyUpdate(propId, e.target.value);
+                                propSender.postProperty(propId, e.target.value);
                             }}"/>
                         </div>
                     </div>
@@ -176,6 +106,9 @@ export default class Timer extends DockTab {
     }
 
     render() {
+        const selection = propSender.selection;
+        const overlays = Overlays.getOverlayList();
+
         return html`
             <link href="./material-icons.css" rel="stylesheet">
             
@@ -191,22 +124,22 @@ export default class Timer extends DockTab {
             </obs-dock-tab-section>
 
             <obs-dock-tab-section section-title="Overlay Properties">
-                <!-- <div>
-                    ${this.selection.map(item => {
-                        return html`<div>${JSON.stringify(item)}</div>`;
-                    })}
-                </div> -->
                 <div class="properties">
-                    ${this.selection.map(item => {
+                    ${selection.map(item => {
                         if(item.props) {
                             return html`
                                 <div>${item.itemName}</div>
                                 ${Object.keys(item.props).map(key => this.renderProperty(key, item.props[key]))}
                             `;
+                        } else {
+                            return html`
+                                <div>${item.itemName}</div>
+                                <div class="placeholder">No custom properties</div>
+                            `;
                         }
                     })}
 
-                    ${this.selection.length == 0 ? html`
+                    ${selection.length == 0 ? html`
                         <div class="placeholder">
                                 Nothing Selected
                         </div>
@@ -217,4 +150,4 @@ export default class Timer extends DockTab {
     }
 }
 
-customElements.define('obs-tools-overlay', Timer);
+customElements.define('obs-tools-overlay', Overlay);

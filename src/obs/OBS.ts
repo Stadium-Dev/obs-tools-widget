@@ -1,5 +1,4 @@
 // localStorage.debug = 'obs-websocket-js:*';
-import '../lib/obs-websocket.js';
 import Config from '../Config.js';
 
 const tickrate = 1000 / 12;
