@@ -1,37 +1,50 @@
-
-let outputDevice = "";
-let inputDevice = "";
-
 const ON_VALUE = 127;
 const OFF_VALUE = 0;
 const MIDI_CHANNEL_VALUE = 176;
 
+const devices = [];
+const readyCallbacks = [];
+
+let inputs = null;
+let outputs = null;
+
+async function openDevice(inputDevice, outputDevice) {
+
+    if(inputDevice) {
+        for(let [id, input] of inputs) {
+            if(input.name == inputDevice) {
+                console.log("Found input:", input);
+                await useInput(input);
+                break;
+            }
+        }
+        if(!inputDevice) {
+            console.log('Could not find input device.');
+        }
+    }
+
+    if(outputDevice) {
+        for(let [id, output] of outputs) {
+            if(output.name == outputDevice) {
+                console.log("Found output:", output);
+                await useOutput(output);
+                break;
+            }
+        }
+        if(!outputDevice) {
+            console.log('Could not find output device.');
+        }
+    }
+}
+
 async function onMIDISuccess(midiAccess) {
-    console.log(midiAccess);
+    inputs = midiAccess.inputs;
+    outputs = midiAccess.outputs;
 
-    const inputs = midiAccess.inputs;
-    const outputs = midiAccess.outputs;
-
-    for(let [id, output] of outputs) {
-        if(output.name == outputDevice) {
-            console.log("Found output:", output);
-            await useOutput(output);
-            break;
-        }
-    }
-    if(!outputDevice) {
-        console.log('Could not find output device.');
-    }
-
-    for(let [id, input] of inputs) {
-        if(input.name == inputDevice) {
-            console.log("Found input:", input);
-            await useInput(input);
-            break;
-        }
-    }
-    if(!inputDevice) {
-        console.log('Could not find input device.');
+    devices.push(...inputs);
+    
+    for(let callback of readyCallbacks) {
+        callback();
     }
 }
 
@@ -192,6 +205,14 @@ function animate() {
 
 export default class Midi {
 
+    static onRedy(callback) {
+        readyCallbacks.push(callback);
+    }
+
+    static getDevices() {
+        return devices;
+    }
+
     static get channels() {
         return CHANNELS.map((channel, i) => {
             return {
@@ -233,10 +254,7 @@ export default class Midi {
     }
 
     static open(deviceName) {
-        outputDevice = deviceName;
-        inputDevice = deviceName;
-
-        return navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
+        openDevice(deviceName, deviceName);
     }
 
     static onMessage(callback) {
@@ -251,3 +269,5 @@ export default class Midi {
     }
 
 }
+
+navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);

@@ -89,12 +89,19 @@ export default class Overlay extends DockTab {
     constructor() {
         super();
 
+        this.selection = propSender.selection;
+
         propSender.onUpdate(() => this.update());
     }
 
     resetProperty(propId, prop) {
         propSender.postProperty(propId, prop.default);
         prop.value = prop.default;
+
+        // have to update empty selection because it wouldnt update values on reset property :/
+        this.selection = [];
+        this.update();
+        this.selection = propSender.selection;
         this.update();
     }
 
@@ -102,65 +109,56 @@ export default class Overlay extends DockTab {
         switch(prop.type) {
             case "boolean":
                 return html`
-                    <div class="row">
-                        <label>${prop.name}</label>
-                        <div>
-                            <input-switch .checked="${prop.value === 1 ? true : false}" @change="${e => {
-                                propSender.postProperty(propId, e.target.checked ? 1 : 0);
-                            }}"></input-switch>
-                            <button class="reset-property-btn" @click="${e => this.resetProperty(propId, prop)}">
-                                <i class="material-icons">restart_alt</i>
-                            </button>
-                        </div>
+                    <label>${prop.name}</label>
+                    <div>
+                        <input-switch ?checked="${prop.value}" @change="${e => {
+                            propSender.postProperty(propId, e.target.checked ? 1 : 0);
+                        }}"></input-switch>
+                        <button class="reset-property-btn" @click="${e => this.resetProperty(propId, prop)}">
+                            <i class="material-icons">restart_alt</i>
+                        </button>
                     </div>
                 `;
             case "number":
                 return html`
-                    <div class="row">
-                        <label>${prop.name}</label>
-                        <div>
-                            <gyro-fluid-input min="0" max="100" .value="${prop.value}" @input="${e => {
-                                propSender.postProperty(propId, e.target.value);
-                            }}"></gyro-fluid-input>
-                            <button class="reset-property-btn" @click="${e => this.resetProperty(propId, prop)}">
-                                <i class="material-icons">restart_alt</i>
-                            </button>
-                        </div>
+                    <label>${prop.name}</label>
+                    <div>
+                        <gyro-fluid-input min="0" max="100" .value="${prop.value}" @input="${e => {
+                            propSender.postProperty(propId, e.target.value);
+                        }}"></gyro-fluid-input>
+                        <button class="reset-property-btn" @click="${e => this.resetProperty(propId, prop)}">
+                            <i class="material-icons">restart_alt</i>
+                        </button>
                     </div>
                 `;
             case "color":
                 return html`
-                    <div class="row">
-                        <label>${prop.name}</label>
-                        <button class="reset-property-btn" @click="${e => this.resetProperty(propId, prop)}">
-                            <i class="material-icons">restart_alt</i>
-                        </button>
-                        <div>
-                            <color-picker .hex="${prop.value}" @input="${e => {
-                                propSender.postProperty(propId, e.target.hex);
-                            }}"></color-picker>
-                        </div>
+                    <label>${prop.name}</label>
+                    <button class="reset-property-btn" @click="${e => this.resetProperty(propId, prop)}">
+                        <i class="material-icons">restart_alt</i>
+                    </button>
+                    <div>
+                        <color-picker .hex="${prop.value}" @input="${e => {
+                            propSender.postProperty(propId, e.target.hex);
+                        }}"></color-picker>
                     </div>
                 `;
             default:
                 return html`
-                    <div class="row">
-                        <label>${prop.name}</label>
-                        <div>
-                            <input value="${prop.value}" @input="${e => {
-                                propSender.postProperty(propId, e.target.value);
-                            }}"/>
-                            <button class="reset-property-btn" @click="${e => this.resetProperty(propId, prop)}">
-                                <i class="material-icons">restart_alt</i>
-                            </button>
-                        </div>
+                    <label>${prop.name}</label>
+                    <div>
+                        <input value="${prop.value}" @input="${e => {
+                            propSender.postProperty(propId, e.target.value);
+                        }}"/>
+                        <button class="reset-property-btn" @click="${e => this.resetProperty(propId, prop)}">
+                            <i class="material-icons">restart_alt</i>
+                        </button>
                     </div>
                 `;
         }
     }
 
     render() {
-        const selection = propSender.selection;
         const overlays = Overlays.getOverlayList();
 
         return html`
@@ -179,11 +177,15 @@ export default class Overlay extends DockTab {
 
             <obs-dock-tab-section section-title="Overlay Properties">
                 <div class="properties">
-                    ${selection.map(item => {
+                    ${this.selection.map(item => {
                         if(item.props) {
                             return html`
                                 <div>${item.itemName}</div>
-                                ${Object.keys(item.props).map(key => this.renderProperty(key, item.props[key]))}
+                                ${Object.keys(item.props).map(key => html`
+                                    <div class="row">
+                                        ${this.renderProperty(key, item.props[key])}
+                                    </div>
+                                `)}
                             `;
                         } else {
                             return html`
@@ -193,10 +195,8 @@ export default class Overlay extends DockTab {
                         }
                     })}
 
-                    ${selection.length == 0 ? html`
-                        <div class="placeholder">
-                                Nothing Selected
-                        </div>
+                    ${this.selection.length == 0 ? html`
+                        <div class="placeholder">Nothing Selected</div>
                     ` : ""}
                 </div>
             </obs-dock-tab-section>

@@ -55,7 +55,7 @@ export default class DropdownButton extends LitElement {
 				position: absolute;
 				top: 100%;
 				margin-top: 2px;
-				left: 0;
+				right: 0;
 				background: rgba(25, 25, 25, 1);
 				border-radius: 4px;
 				overflow: hidden;

@@ -3,6 +3,7 @@ import Config from '../Config.js';
 import DockTab from './DockTab.js';
 import LayoutPresets from '../LayoutPresets.js';
 import OBS from '../obs/OBS';
+import Midi from '../Midi';
 
 const Action = {
     SCENE_SWITCH: 0,
@@ -137,12 +138,26 @@ export default class MidiSceneSwitcher extends DockTab {
             { name: "Switch Scene", value: Action.SCENE_SWITCH },
             { name: "Trigger Preset", value: Action.TRIGGER_PRESET }
         ];
+        const midiDevices = Midi.getDevices().map(([_, dev]) => {
+            return { name: dev.name, value: dev.name }
+        });
 
         return html`
             <link href="./material-icons.css" rel="stylesheet">
 
             <obs-dock-tab-section section-title="Midi Scene Switcher">
+
+                <div class="row">
+                    <label>Midi Device</label>
+                    <div>
+                        <dropdown-button class="Action" .options="${midiDevices}" .value="${Config.get('midi-device')}" @change="${e => {
+                            Config.set('midi-device', e.target.value.value);
+                        }}"></dropdown-button>
+                    </div>
+                </div>
+
                 <div class="list">
+                    
                     <div class="binding header">
                         <div>Midi</div>
                         <div>Action</div>
