@@ -1,14 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <link rel="preconnect" href="https://fonts.gstatic.com">
-    
+
     <link rel="manifest" href="manifest.json">
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').then(registration => {
+                // Registration was successful
+                console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            }, function (err) {
+                // registration failed :(
+                console.log('ServiceWorker registration failed: ', err);
+            });
+        }
+    </script>
 
     <link rel="shortcut icon" href="./images/icon262.png">
     <link rel="apple-touch-icon" href="./images/icon262.png">
 
-    <meta name="theme-color" content="#333"/>
+    <meta name="theme-color" content="#333" />
 
     <script src="./libs/socket.io.js"></script>
     <script src="./libs/obs-websocket.js"></script>
@@ -25,6 +38,7 @@
             font-family: 'Lato', sans-serif;
             font-size: 14px;
         }
+
         gyro-layout {
             position: absolute;
             top: 0;
@@ -32,6 +46,7 @@
             width: 100%;
             height: 100%;
         }
+
         gyro-group {
             --panel-background: hsl(0, 0%, 12%);
             --tab-background: transparent;
@@ -40,29 +55,35 @@
             --tabs-background: hsl(0, 0%, 8%);
             --tab-font-color: #eeeeee;
         }
+
         ::-webkit-scrollbar {
             width: 8px;
             margin: 0 4px;
             margin-left: 2px;
         }
+
         ::-webkit-scrollbar-button {
             display: none;
         }
-        ::-webkit-scrollbar-track-piece  {
+
+        ::-webkit-scrollbar-track-piece {
             background: #1c1c1c;
         }
+
         ::-webkit-scrollbar-thumb {
             background: #333;
             border-radius: 5px;
             border: none;
         }
+
         ::-webkit-scrollbar-thumb:hover {
             background: #444;
         }
     </style>
 </head>
+
 <body style="background: #1c1c1c;">
-    
+
     <gyro-layout>
         <gyro-layout-column>
             <gyro-group show-tabs>
@@ -71,7 +92,7 @@
                 <obs-tools-timer tab="Timer" tab-icon="timer"></obs-tools-timer>
                 <obs-scene-presets tab="Scene Presets" tab-icon="animation"></obs-scene-presets>
                 <!-- <obs-midi-switcher tab="Midi Scene Switcher" tab-icon="switch_video"></obs-midi-switcher> -->
-                
+
                 <obs-1uckybot-tab tab="1B"></obs-1uckybot-tab>
                 <obs-tools-settings tab="Settings" tab-icon="settings"></obs-tools-settings>
             </gyro-group>
@@ -79,4 +100,5 @@
     </gyro-layout>
 
 </body>
+
 </html>
