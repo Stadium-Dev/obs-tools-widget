@@ -1,7 +1,6 @@
 const overlays = [
     { name: "Timer Overlay", url: "../overlay/timer.html?layer-name=Timer%20Overlay&layer-width=1920&layer-height=1080" },
     { name: "Subathon Overlay", url: "../overlay/subathon.html?layer-name=Subathon%20Overlay&layer-width=1920&layer-height=1080" },
-    { name: "Labels Overlay", url: "../overlay/labels.html?layer-name=Subathon%20Overlay&layer-width=1920&layer-height=1080" }
 ];
 
 export default class Overlays {
