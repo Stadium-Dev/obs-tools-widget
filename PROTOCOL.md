@@ -64,4 +64,4 @@ function updateUI() {
 updateUI();
 ```
 
-With this any Browser Source will be able to talk to my OBS Tool Doch and you will be able to change the declared properties outside of the browser source in OBS.
+With this any Browser Source will be able to talk to my OBS Tool Dock and you will be able to change the declared properties outside of the browser source in OBS.
