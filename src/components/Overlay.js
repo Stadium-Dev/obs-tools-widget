@@ -44,7 +44,7 @@ export default class Overlay extends DockTab {
                 padding: 5px;
             }
             .overlay-section {
-                min-height: 150px;
+                height: auto;
             }
             .properties {
                 
@@ -101,20 +101,25 @@ export default class Overlay extends DockTab {
         // have to update empty selection because it wouldnt update values on reset property :/
         this.selection = [];
         this.update();
-        this.selection = propSender.selection;
-        this.update();
+        requestAnimationFrame(() => {
+            this.selection = propSender.selection;
+            this.update();
+        })
     }
 
-    renderProperty(propId, prop) {
+    renderProperty(propId, propObj) {
+        const id = propId;
+        const prop = propObj;
+        
         switch(prop.type) {
             case "boolean":
                 return html`
                     <label>${prop.name}</label>
                     <div>
                         <input-switch ?checked="${prop.value}" @change="${e => {
-                            propSender.postProperty(propId, e.target.checked ? 1 : 0);
+                            propSender.postProperty(id, e.target.checked ? 1 : 0);
                         }}"></input-switch>
-                        <button class="reset-property-btn" @click="${e => this.resetProperty(propId, prop)}">
+                        <button class="reset-property-btn" @click="${e => this.resetProperty(id, prop)}">
                             <i class="material-icons">restart_alt</i>
                         </button>
                     </div>
@@ -124,9 +129,9 @@ export default class Overlay extends DockTab {
                     <label>${prop.name}</label>
                     <div>
                         <gyro-fluid-input min="0" max="100" .value="${prop.value}" @input="${e => {
-                            propSender.postProperty(propId, e.target.value);
+                            propSender.postProperty(id, e.target.value);
                         }}"></gyro-fluid-input>
-                        <button class="reset-property-btn" @click="${e => this.resetProperty(propId, prop)}">
+                        <button class="reset-property-btn" @click="${e => this.resetProperty(id, prop)}">
                             <i class="material-icons">restart_alt</i>
                         </button>
                     </div>
@@ -134,12 +139,12 @@ export default class Overlay extends DockTab {
             case "color":
                 return html`
                     <label>${prop.name}</label>
-                    <button class="reset-property-btn" @click="${e => this.resetProperty(propId, prop)}">
+                    <button class="reset-property-btn" @click="${e => this.resetProperty(id, prop)}">
                         <i class="material-icons">restart_alt</i>
                     </button>
                     <div>
                         <color-picker .hex="${prop.value}" @input="${e => {
-                            propSender.postProperty(propId, e.target.hex);
+                            propSender.postProperty(id, e.target.hex);
                         }}"></color-picker>
                     </div>
                 `;
@@ -148,9 +153,9 @@ export default class Overlay extends DockTab {
                     <label>${prop.name}</label>
                     <div>
                         <input value="${prop.value}" @input="${e => {
-                            propSender.postProperty(propId, e.target.value);
+                            propSender.postProperty(id, e.target.value);
                         }}"/>
-                        <button class="reset-property-btn" @click="${e => this.resetProperty(propId, prop)}">
+                        <button class="reset-property-btn" @click="${e => this.resetProperty(id, prop)}">
                             <i class="material-icons">restart_alt</i>
                         </button>
                     </div>
@@ -164,7 +169,7 @@ export default class Overlay extends DockTab {
         return html`
             <link href="./material-icons.css" rel="stylesheet">
             
-            <obs-dock-tab-section section-title="Overlay Drag & Drop" class="overlay-section">
+            <obs-dock-tab-section .enabled="${true}" optional section-title="Overlay Drag & Drop" class="overlay-section">
                 ${overlays.map(overlay => {
                     return html`
                         <a class="drag-and-button" @click="${e => e.preventDefault()}" href="${overlay.url}">

@@ -41,7 +41,7 @@ export default class OverlayHud extends LitElement {
 
         this.text = "Start: ";
         this.time = 60 * 60 * 12;
-        this.timerPlaying = true;
+        this.timerPlaying = false;
 
         if(Config.get('timer')) {
             this.time = Config.get('timer');
