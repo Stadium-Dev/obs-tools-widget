@@ -16,6 +16,7 @@ export default class Group extends Column {
 			<link href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined" rel="stylesheet">
 			<style>
 				:host {
+					gap: 0;
 					position: relative;
 					overflow: hidden;
 					z-index: 1000;

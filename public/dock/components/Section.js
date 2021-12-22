@@ -1,5 +1,5 @@
 import { css, html, LitElement } from 'https://cdn.skypack.dev/lit-element@2.4.0';
-import Config from '../Config.js';
+import Config from '../libs/Config.js';
 import './Switch.js';
 
 export default class DockTabSection extends LitElement {
@@ -16,7 +16,6 @@ export default class DockTabSection extends LitElement {
                 line-height: 100%;
             }
             .header {
-                border-top: 1px solid #383838;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
@@ -25,7 +24,6 @@ export default class DockTabSection extends LitElement {
                 font-size: 12px;
                 color: rgb(152 152 152);
                 font-weight: 400;
-                background: rgb(41, 41, 41);
                 padding: 5px 7px 5px 7px;
                 box-sizing: border-box;
                 margin-bottom: 1px;

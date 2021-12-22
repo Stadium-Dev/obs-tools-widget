@@ -1,4 +1,4 @@
-import Config from "./Config.js";
+import Config from "../libs/Config.js";
 
 export default class Streamlabs {
 

@@ -1,5 +1,5 @@
 import { css, html } from 'https://cdn.skypack.dev/lit-element@2.4.0';
-import Config from '../Config.js';
+import Config from '../libs/Config.js';
 import DockTab from './DockTab.js';
 import Twitch from '../services/Twitch.js';
 

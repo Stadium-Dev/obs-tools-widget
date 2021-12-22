@@ -1,7 +1,7 @@
 import { css, html } from 'https://cdn.skypack.dev/lit-element@2.4.0';
-import Config from '../Config.js';
-import OBS from '../OBS.js';
-import Streamlabs from '../Streamlabs.js';
+import Config from '../libs/Config.js';
+import OBS from '../libs/OBS.js';
+import Streamlabs from '../services/Streamlabs.js';
 import DockTab from './DockTab.js';
 import './Section.js';
 

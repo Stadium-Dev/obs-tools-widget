@@ -95,6 +95,7 @@ export default class DockTab extends LitElement {
             }
             .section-content {
                 padding: 10px;
+                background: #1c1c1c;
             }
             .section[section-title]::before {
                 content: attr(section-title);
@@ -104,11 +105,9 @@ export default class DockTab extends LitElement {
                 font-size: 12px;
                 color: rgb(152 152 152);
                 font-weight: 400;
-                background: rgb(41, 41, 41);
                 padding: 4px 7px 5px 7px;
                 box-sizing: border-box;
                 line-height: 18px;
-                border-top: 1px solid #383838;
             }
         `;
     }

@@ -1,7 +1,7 @@
 import { css, html } from 'https://cdn.skypack.dev/lit-element@2.4.0';
-import Config from '../Config.js';
+import Config from '../libs/Config.js';
 import DockTab from './DockTab.js';
-import OBS from '../OBS.js';
+import OBS from '../libs/OBS.js';
 
 let mediaServerWs;
 function disbleMediaServerControl() {
