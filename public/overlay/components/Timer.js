@@ -1,5 +1,5 @@
 import { css, html, LitElement } from 'https://cdn.skypack.dev/lit-element@2.4.0';
-import Config from '../../dock/Config.js';
+import Config from '../../dock/llibs/Config.js';
 
 export default class OverlayHud extends LitElement {
 
