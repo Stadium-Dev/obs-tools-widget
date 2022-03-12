@@ -1,394 +1,460 @@
-import { css, html, LitElement } from 'lit-element';
+import { html, css, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
 
-function map(value, in_min, in_max, out_min, out_max) {
-	return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+class InputChangeEvent extends Event {
+	delta: number;
+
+	constructor(delta: number) {
+		super('change', { bubbles: true });
+		this.delta = delta;
+	}
 }
 
+function map(value: number, inMin: number, inMax: number, outMin: number, outMax: number) {
+	return ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
+}
+
+@customElement('fluid-input')
 export default class FluidInput extends LitElement {
+	internalValue = 400;
 
-    static get styles() {
-        return css`
-            :host {
-                display: inline-block;
-                height: 25px;
-                width: 85px;
+	internalMin = 100;
 
-                --color-input-background: #1B1B1B;
-                --color-input-hover-background: #202020;
-                --color-input-active-background: #373737;
-            }
+	internalMax = 600;
 
-            .input-container {
-                width: 100%;
-                height: 100%;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                background: var(--color-input-background);
-                border-radius: 4px;
-                cursor: e-resize;
-                position: relative;
-                overflow: hidden;
-                border: 1px solid #373737;
-            }
+	internalSteps = 10;
 
-            .input-container:before {
-                content: "";
-                position: absolute;
-                left: 0;
-                top: 0;
-                height: 100%;
-                width: calc(100% * var(--value));
-                pointer-events: none;
-                background: white;
-                opacity: 0.025;
-            }
+	input: HTMLInputElement | undefined | null;
 
-            .input-container[active]:before {
-                opacity: 0.1;
-            }
+	inputValue: HTMLInputElement | undefined | null;
 
-            .input-container:hover {
-                background: var(--color-input-hover-background);
-            }
-            
-            .input-container[active] {
-                background: var(--color-input-active-background);
-            }
+	valueContainer: HTMLInputElement | undefined | null;
 
-            .value-container {
-                white-space: nowrap;
-                height: 100%;
-            }
+	leftArrow: Element | undefined | null;
 
-            .input-value {
-                cursor: e-resize;
-                height: 100%;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                border: none;
-                background: transparent;
-                margin: 0 -10px;
-                width: auto;
-                padding: 0;
-                color: inherit;
-                font-family: inherit;
-                font-size: inherit;
-                text-align: center;
-            }
+	rightArrow: Element | undefined | null;
 
-            .input-value:focus {
-                cursor: text;
-            }
-
-            .value-suffix {
-                opacity: 0.5;
-                pointer-events: none;
-                margin-left: 5px;
-            }
-
-            .input-value:focus {
-                outline: none;
-                cursor: text;
-            }
-
-            .arrow {
-                padding: 0 6px;
-                height: 100%;
-                display: flex;
-                align-items: center;
-                cursor: pointer;
-                opacity: 0.75;
-                position: absolute;
-            }
-
-            .left-arrow {
-                left: 0;
-            }
-            .right-arrow {
-                right: 0;
-            }
-
-            .arrow:hover {
-                background: rgba(255, 255, 255, 0.05);
-            }
-
-            .arrow:active {
-                background: rgba(255, 255, 255, 0.01);
-            }
-
-            .arrow svg {
-                fill: none;
-                stroke: var(--color-text, #eee);
-                stroke-width: 1.25px;
-                stroke-linecap: round;
-            }
-        `;
-    }
-
-	render() {
-		return html`
-			<div class="input-container">
-                <span class="arrow left-arrow">
-                    <svg x="0px" y="0px" width="7.3px" height="11px" viewBox="0 0 7.3 12.5">
-                        <polyline class="st0" points="6.3,1 1,6.3 6.3,11.5 "/>
-                    </svg>
-                </span>
-                <span class="value-container">
-                    <input class="input-value"></input>
-                    ${this.suffix ? html`
-                        <span class="value-suffix">${this.suffix}</span>
-                    ` : "" }
-                </span>
-                <span class="arrow right-arrow">
-                    <svg x="0px" y="0px" width="7.3px" height="11px" viewBox="0 0 7.3 12.5">
-                        <polyline class="st0" points="1,11.5 6.3,6.3 1,1 "/>
-                    </svg>
-                </span>
-			</div>
-		`;
+	static get properties() {
+		return {
+			value: {
+				type: Number
+			},
+			min: {
+				type: Number
+			},
+			max: {
+				type: Number
+			},
+			steps: {
+				type: Number
+			}
+		};
 	}
 
-    static get properties() {
-        return {
-            value: {},
-            min: {},
-            max: {},
-            steps: {},
-        };
-    }
-
-	get value() { return this._value; }
-	set value(val) { 
-		this._value = +val;
-		this.update();
+	get value() {
+		return this.internalValue;
 	}
 
-	get min() { return this._min; }
+	set value(val) {
+		this.internalValue = +val;
+		this.updateValue();
+	}
+
+	get min() {
+		return this.internalMin;
+	}
+
 	set min(val) {
-		this._min = +val;
-		this.update();
+		this.internalMin = +val;
+		this.updateValue();
 	}
 
-	get max() { return this._max; }
+	get max() {
+		return this.internalMax;
+	}
+
 	set max(val) {
-		this._max = +val;
-		this.update();
+		this.internalMax = +val;
+		this.updateValue();
 	}
 
-	get steps() { return this._steps; }
+	get steps() {
+		return this.internalSteps;
+	}
+
 	set steps(val) {
-		this._steps = +val;
-		this.update();
-    }
+		this.internalSteps = +val;
+		this.updateValue();
+	}
 
-	get suffix() { return this.getAttribute('suffix'); }
-	set suffix(val) { this.setAttribute('suffix', val); }
-    
-    get isRange() {
-        return this.max || this.min;
-    }
+	get suffix() {
+		return this.getAttribute('suffix');
+	}
 
-	constructor() {
-		super();
+	get isRange() {
+		return this.max || this.min;
+	}
 
-		this._value = .2;
-		this._min = 0;
-		this._max = 0;
-		this._steps = 0.1;
+	connectedCallback(): void {
+		super.connectedCallback();
 
-        this.update();
+		requestAnimationFrame(() => {
+			this.input = this.shadowRoot?.querySelector('.input-container') as HTMLInputElement;
+			this.inputValue = this.shadowRoot?.querySelector('.input-value') as HTMLInputElement;
 
-		this.input = this.shadowRoot.querySelector('.input-container');
-        this.inputValue = this.shadowRoot.querySelector('.input-value');
+			this.valueContainer = this.shadowRoot?.querySelector('.value-container') as HTMLInputElement;
 
-		this.leftArrow = this.shadowRoot.querySelector('.left-arrow');
-		this.rightArrow = this.shadowRoot.querySelector('.right-arrow');
+			this.leftArrow = this.shadowRoot?.querySelector('.left-arrow');
+			this.rightArrow = this.shadowRoot?.querySelector('.right-arrow');
 
-		this.registerHandlers();
+			this.registerHandlers();
+			this.updateValue();
+		});
+	}
+
+	updateValue() {
+		if (this.isRange && this.input != null) {
+			this.input.style.setProperty('--value', map(this.value, this.min, this.max, 0, 1).toString());
+		}
+
+		const getPrecision = (n: number) => {
+			const precParts = n.toString().split('.');
+			const size = precParts[1] ? precParts[1].length : 0;
+
+			// return 0 if precision is smaller then .000
+			if (precParts[1] && precParts[1].substring(0, 3) === '000') {
+				return 0;
+			}
+
+			return size;
+		};
+
+		const valuePrecision = getPrecision(this.value);
+		const stepsPrecision = getPrecision(this.steps);
+
+		const precision = valuePrecision > stepsPrecision ? stepsPrecision : valuePrecision;
+
+		if (this.inputValue) {
+			this.inputValue.value = this.value.toFixed(precision);
+			this.inputValue.size = this.inputValue.value.length;
+		}
+	}
+
+	setValue(value: number) {
+		const latValue = this.value;
+
+		if (this.isRange) {
+			this.value = Math.min(Math.max(value, this.min), this.max);
+		} else {
+			this.value = value;
+		}
+
+		this.dispatchEvent(new InputChangeEvent(this.value - latValue));
 	}
 
 	registerHandlers() {
-		let startPos = null;
-		let startMovePos = null;
-        let startValue = this.value;
-        let focused = false;
+		let startPos: [number, number] | null = null;
+		let startMovePos: [number, number] | null = null;
+		let startValue = this.value;
+		let focused = false;
 
 		const cancel = () => {
-            startPos = null;
-            startMovePos = null;
-            this.input.removeAttribute('active');
-		}
-		const up = e => {
-            if(startPos && !startMovePos) {
-                this.inputValue.disabled = false;
-                focused = true;
+			startPos = null;
+			startMovePos = null;
+			if (this.input) {
+				this.input.removeAttribute('active');
+			}
+		};
 
-                this.inputValue.focus();
-            }
+		if (this.valueContainer) {
+			this.valueContainer.addEventListener('click', (e) => {
+				if (this.inputValue) {
+					this.inputValue.disabled = false;
+					focused = true;
+
+					this.inputValue.focus();
+				}
+			});
+		}
+
+		const up = () => {
 			cancel();
-		}
-		const start = e => {
-			if(!focused) {
-                startPos = [e.x, e.y];
-                startValue = this.value;
-                this.input.setAttribute('active', ''); 
-                e.preventDefault();
-            }
-		}
-		const move = e => {
-			if(startPos) {
-                if(Math.abs(e.x - startPos[0]) > 10) {
-                    startMovePos = [e.x, e.y];
-                }
-            }
-			if(startMovePos && startPos) {
+		};
+		const start = (e: TouchEvent | MouseEvent) => {
+			let x = 0;
+			let y = 0;
+
+			if (e instanceof MouseEvent) {
+				x = e.clientX;
+				y = e.clientY;
+			} else {
+				x = e.touches[0].clientX;
+				y = e.touches[0].clientY;
+			}
+
+			if (!focused) {
+				startPos = [x, y];
+				startValue = this.value;
+				if (this.input) {
+					this.input.setAttribute('active', '');
+				}
+				e.preventDefault();
+			}
+		};
+		const move = (e: TouchEvent | MouseEvent) => {
+			let x = 0;
+			let y = 0;
+
+			if (e instanceof MouseEvent) {
+				x = e.clientX;
+				y = e.clientY;
+			} else {
+				x = e.touches[0].clientX;
+				y = e.touches[0].clientY;
+			}
+
+			if (startPos) {
+				if (Math.abs(x - startPos[0]) > 10) {
+					startMovePos = [x, y];
+				}
+			}
+			if (startMovePos && startPos) {
 				// apply shift key scaler
 				let scale = e.shiftKey ? 0.0005 : 0.005;
-                // scale to min max range
-                if(this.max - this.min > 0) {
-                    scale *= (this.max - this.min) / 4;
-                }
+				// scale to min max range
+				if (this.max - this.min > 0) {
+					scale *= (this.max - this.min) / 1;
+				}
 
 				// set value by absolute delta movement * scale
-				let absolute = startValue + ((e.x - startPos[0]) * scale);
+				let absolute = startValue + (x - startPos[0]) * scale;
 				// apply steps
-				absolute = absolute - (absolute % this.steps);
+				absolute -= absolute % this.steps;
 
 				this.setValue(absolute);
 				e.preventDefault();
 			}
-        }
+		};
 
-        const submit = () => {
-            if(isNaN(this.inputValue.value)) {
+		const cancelInput = () => {
+			this.setValue(this.value);
+			if (!this.inputValue) return;
+			this.inputValue.disabled = true;
+			focused = false;
+		};
 
-                try {
-                    const evalValue = math.evaluate(this.inputValue.value);
-                    this.setValue(evalValue);
-                } catch(err) {
-                    console.log(err);
-                }
-                
-                cancelInput();
+		const submit = () => {
+			if (!this.inputValue) return;
 
-            } else {
-                this.setValue(parseFloat(this.inputValue.value));
-                this.inputValue.disabled = true;
-                focused = false;
-            }
-        }
+			if (Number.isNaN(this.inputValue.value)) {
+				try {
+					const evalValue = +this.inputValue.value;
+					this.setValue(evalValue);
+				} catch (err) {
+					console.log(err);
+				}
 
-        const cancelInput = () => {
-            this.setValue(this.value);
-            this.inputValue.disabled = true;
-            focused = false;
-        }
+				cancelInput();
+			} else {
+				this.setValue(parseFloat(this.inputValue.value));
+				this.inputValue.disabled = true;
+				focused = false;
+			}
+		};
 
-        const input = e => {
-            if(e.key == "Enter") {
-                submit();
-            } else if(e.key == "Escape") {
-                cancelInput();
-            }
-        }
-        
-        this.inputValue.addEventListener('blur', submit);
-        this.inputValue.addEventListener('keydown', input);
+		const input = (e: KeyboardEvent) => {
+			if (e.key === 'Enter') {
+				submit();
+			} else if (e.key === 'Escape') {
+				cancelInput();
+			}
+		};
 
-		this.input.addEventListener('mousedown', start);
-		window.addEventListener('mousemove', move);
+		if (this.inputValue && this.input && this.rightArrow && this.leftArrow) {
+			this.inputValue.addEventListener('blur', submit);
+			this.inputValue.addEventListener('keydown', input);
 
-		window.addEventListener('mouseup', up);
-		window.addEventListener('mousecancel', cancel);
-        window.addEventListener('mouseleave', cancel);
-        
-        this.leftArrow.addEventListener('click', e => {
-            this.setValue(this.value - this.steps);
-            e.preventDefault();
-        });
-        this.rightArrow.addEventListener('click', e => {
-            this.setValue(this.value + this.steps);
-            e.preventDefault();
-        });
+			// mouse
+			this.input.addEventListener('mousedown', start);
+			window.addEventListener('mousemove', move);
 
-        this.addEventListener('mousedown', e => {
-            if(!startPos && !focused) {
-                e.preventDefault();
-            }
-        });
+			// touch
+			this.input.addEventListener('touchstart', start);
+			window.addEventListener('touchmove', move);
+
+			// touch
+			window.addEventListener('touchend', up);
+			window.addEventListener('touchcancel', up);
+
+			// mouse
+			window.addEventListener('mouseup', up);
+			window.addEventListener('mousecancel', up);
+			window.addEventListener('mouseleave', up);
+
+			this.leftArrow.addEventListener('click', (e) => {
+				this.setValue(this.value - this.steps);
+				e.preventDefault();
+			});
+			this.rightArrow.addEventListener('click', (e) => {
+				this.setValue(this.value + this.steps);
+				e.preventDefault();
+			});
+		}
+
+		// touch
+		this.addEventListener('touchstart', (e) => {
+			if (!startPos && !focused) {
+				e.preventDefault();
+			}
+		});
+
+		// mouse
+		this.addEventListener('mousedown', (e) => {
+			if (!startPos && !focused) {
+				e.preventDefault();
+			}
+		});
 	}
 
-	attributeChangedCallback(name, oldValue, newValue) {
-        super.attributeChangedCallback(name, oldValue, newValue);
+	static get styles() {
+		return css`
+			:host {
+				display: inline-block;
+				height: 20px;
+				width: 85px;
 
-		if(name == "value") {
-			this.setValue(newValue);
-		}
-		if(name == "min") {
-			this.min = +newValue;
-		}
-		if(name == "max") {
-			this.max = +newValue;
-		}
-		if(name == "steps") {
-			this.steps = +newValue;
-		}
+				--color-input-background: #c4c4c4;
+				--color-input-hover-background: #cccccc;
+				--color-input-active-background: #cccccc;
+				--value-background-color: var(--accent-color);
+			}
+
+			.input-container {
+				width: 100%;
+				height: 100%;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				background: var(--color-input-background);
+				border-radius: 4px;
+				cursor: ew-resize;
+				position: relative;
+				overflow: hidden;
+				border: 1px solid transparent;
+			}
+
+			.input-container:before {
+				content: '';
+				position: absolute;
+				left: 0;
+				top: 0;
+				height: 100%;
+				width: calc(100% * var(--value));
+				pointer-events: none;
+				background: var(--value-background-color);
+				opacity: 0.75;
+			}
+
+			.input-container:hover {
+				background: var(--color-input-hover-background);
+			}
+
+			.input-container[active] {
+				background: var(--color-input-active-background);
+				border-color: grey;
+			}
+
+			.value-container {
+				white-space: nowrap;
+				height: 100%;
+			}
+
+			.input-value {
+				cursor: ew-resize;
+				height: 100%;
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				border: none;
+				background: transparent;
+				margin: 0 -10px;
+				width: auto;
+				padding: 0;
+				color: inherit;
+				font-family: inherit;
+				font-size: inherit;
+				text-align: center;
+				position: relative;
+				z-index: 1000;
+			}
+
+			.input-value:focus {
+				cursor: text;
+			}
+
+			.value-suffix {
+				opacity: 0.5;
+				pointer-events: none;
+				margin-left: 8px;
+			}
+
+			.input-value:focus {
+				outline: none;
+				cursor: text;
+			}
+
+			.arrow {
+				padding: 0 6px;
+				height: 100%;
+				display: flex;
+				align-items: center;
+				cursor: pointer;
+				opacity: 0.75;
+				position: absolute;
+			}
+
+			.left-arrow {
+				left: 0;
+			}
+			.right-arrow {
+				right: 0;
+			}
+
+			.arrow:hover {
+				background: rgba(0, 0, 0, 0.1);
+			}
+
+			.arrow:active {
+				background: rgba(255, 255, 255, 0.25);
+			}
+
+			.arrow svg {
+				fill: none;
+				stroke: #fff;
+				stroke-width: 1.25px;
+				stroke-linecap: round;
+			}
+		`;
 	}
 
-	update(args) {
-        super.update(args);
-
-        if(!this.inputValue) {
-            return;
-        }
-
-        if(this.isRange) {
-            this.input.style.setProperty('--value', map(this.value, this.min, this.max, 0, 1));
-        }
-
-        const getPrecision = (n) => {
-            const precParts = n.toString().split(".");
-            const size = precParts[1] ? precParts[1].length : 0;
-
-            // return 0 if precision is smaller then .000
-            if(precParts[1] && precParts[1].substring(0, 3) == "000") {
-                return 0;
-            }
-
-            return size;
-        }
-
-        const valuePrecision = getPrecision(this.value);
-        const stepsPrecision = getPrecision(this.steps);
-
-        const precision = valuePrecision > stepsPrecision ? stepsPrecision : valuePrecision;
-
-        this.inputValue.value = this.value.toFixed(precision);
-        this.inputValue.size = this.inputValue.value.length;
+	render() {
+		return html`
+      <div class="input-container">
+          <span class="arrow left-arrow">
+              <svg x="0px" y="0px" width="7.3px" height="11px" viewBox="0 0 7.3 12.5">
+                  <polyline class="st0" points="6.3,1 1,6.3 6.3,11.5 "/>
+              </svg>
+          </span>
+          <span class="value-container">
+              <input class="input-value"></input>
+              ${this.suffix ? html` <span class="value-suffix">${this.suffix}</span> ` : ''}
+          </span>
+          <span class="arrow right-arrow">
+              <svg x="0px" y="0px" width="7.3px" height="11px" viewBox="0 0 7.3 12.5">
+                  <polyline class="st0" points="1,11.5 6.3,6.3 1,1 "/>
+              </svg>
+          </span>
+      </div>
+    `;
 	}
-
-	setValue(value) {
-        const lastVal = this.value;
-
-        if(this.isRange) {
-            this.value = Math.min(Math.max(value, this.min), this.max);
-        } else {
-            this.value = value;
-        }
-
-        this.dispatchEvent(new InputChangeEvent(this.value - lastVal, this.value));
-	}
-
 }
-
-class InputChangeEvent extends Event {
-    constructor(delta, value) {
-        super('change');
-        this.delta = delta;
-        this.value = value;
-    }
-}
-
-customElements.define("gyro-fluid-input", FluidInput);

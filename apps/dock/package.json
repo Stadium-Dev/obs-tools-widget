@@ -1,24 +1,26 @@
 {
-  "name": "obs-tools-widget",
+  "name": "dock",
   "version": "1.0.0",
   "description": "tools custom dock",
   "main": "index.js",
   "scripts": {
-    "dev": "rollup -c -w",
-    "build": "rollup -c"
+    "dev": "webpack watch",
+    "build": "webpack"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/luckydye/obs-tools-widget.git"
   },
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^13.0.4",
-    "@rollup/plugin-typescript": "^8.2.5",
-    "lit-element": "^2.5.1",
-    "rollup": "^2.54.0",
-    "rollup-plugin-inject-process-env": "^1.3.1",
-    "rollup-plugin-web-worker-loader": "^1.6.1",
-    "typescript": "^4.3.5"
+    "lit": "latest",
+		"lit-scss-loader": "^1.1.0",
+    "sass": "^1.49.7",
+    "sass-loader": "^12.4.0",
+    "ts-loader": "^9.2.6",
+    "typescript": "^4.3.5",
+		"css-loader": "^6.6.0",
+    "extract-loader": "^5.1.0",
+    "webpack": "^5.66.0"
   },
   "author": "",
   "license": "ISC",

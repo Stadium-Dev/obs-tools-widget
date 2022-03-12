@@ -1,12 +1,11 @@
-import { html, css, LitElement } from 'lit-element';
+import { html, css, LitElement } from 'lit';
 
 export default class DropdownButton extends LitElement {
-
-    static get properties() {
-        return {
-            value: {},
-        };
-    }
+	static get properties() {
+		return {
+			value: {}
+		};
+	}
 
 	static get styles() {
 		return css`
@@ -47,7 +46,7 @@ export default class DropdownButton extends LitElement {
 
 			:host([active]) .options {
 				display: block;
-				animation: show .06s ease-out;
+				animation: show 0.06s ease-out;
 			}
 
 			.options {
@@ -61,7 +60,7 @@ export default class DropdownButton extends LitElement {
 				overflow: hidden;
 				min-width: 100%;
 				width: max-content;
-				animation: hide .06s ease-out both;
+				animation: hide 0.06s ease-out both;
 			}
 
 			.options span {
@@ -115,18 +114,16 @@ export default class DropdownButton extends LitElement {
 			}
 		`;
 	}
-	
+
 	render() {
 		const options = this.props.options || [];
 		const onSelect = this.props.onSelect;
-		const value = this.props.value != null ? (this.props.value.name || "none") : "none";
+		const value = this.props.value != null ? this.props.value.name || 'none' : 'none';
 
 		return html`
-			<div class="value">
-				${value}
-			</div>
+			<div class="value">${value}</div>
 			<div class="options">
-				${options.map(opt => {
+				${options.map((opt) => {
 					return html`<span @click=${() => onSelect(opt)}>${opt.name}</span>`;
 				})}
 			</div>
@@ -140,13 +137,13 @@ export default class DropdownButton extends LitElement {
 	set value(val) {
 		this.props.value = val;
 
-		for(let option of this.options) {
-			if(option.value == val) {
+		for (let option of this.options) {
+			if (option.value == val) {
 				this.props.value = option;
 			}
 		}
 
-		this.update();
+		this.requestUpdate();
 	}
 
 	get options() {
@@ -155,49 +152,48 @@ export default class DropdownButton extends LitElement {
 
 	set options(arr) {
 		this.props.options = arr;
-		this.props.value = this.props.value ? this.props.value : arr[0] ? arr[0] : { name: "none" };
+		this.props.value = this.props.value ? this.props.value : arr[0] ? arr[0] : { name: 'none' };
 		this.dispatchEvent(new Event('change'));
-		this.update();
+		this.requestUpdate();
 		this.blur();
 	}
 
 	constructor(props = {}) {
 		super();
 
-        this.props = props;
+		this.props = props;
 
-		this.props.onSelect = opt => {
+		this.props.onSelect = (opt) => {
 			this.value = opt;
 			this.dispatchEvent(new Event('change'));
-			this.update();
+			this.requestUpdate();
 			this.blur();
-		}
+		};
 	}
 
 	connectedCallback() {
 		super.connectedCallback();
 		this.tabIndex = 0;
 
-		this.addEventListener('focus', e => {
+		this.addEventListener('focus', (e) => {
 			this.setAttribute('active', '');
 		});
 
-		this.addEventListener('blur', e => {
+		this.addEventListener('blur', (e) => {
 			this.removeAttribute('active');
 		});
 
-		if(this.options && this.options.length < 1) {
+		if (this.options && this.options.length < 1) {
 			const childOptions = [];
-			for(let child of this.children) {
+			for (let child of this.children) {
 				childOptions.push({
 					name: child.getAttribute('name'),
-					value: child.getAttribute('value'),
+					value: child.getAttribute('value')
 				});
 			}
 			this.options = childOptions;
 		}
 	}
-
 }
 
-customElements.define("dropdown-button", DropdownButton);
+customElements.define('dropdown-button', DropdownButton);

@@ -1,7 +1,3 @@
 import Twitch from './Twitch.js';
 
-export default class TwitchEventSub {
-
-    
-
-}
+export default class TwitchEventSub {}

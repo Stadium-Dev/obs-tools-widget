@@ -1,4 +1,4 @@
-import './src/Gamepad.js';
-import Mapping from './src/GamepadMappings.js';
+import './src/Gamepad';
+import Mapping from './src/GamepadMappings';
 
 export { Mapping };
