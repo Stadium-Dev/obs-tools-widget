@@ -1,6 +1,6 @@
 import { css, html } from 'lit-element';
 import DockTab from './DockTab.js';
-import OBS from '../obs/OBS';
+import { OBS } from 'obs';
 
 export default class OverlayProperties extends DockTab {
 

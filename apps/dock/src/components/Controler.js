@@ -1,9 +1,8 @@
 // obs-controler
 import { css, html } from 'lit-element';
-import OBS from '../OBS.js';
+import { OBS } from 'obs';
 import DockTab from './DockTab.js';
-import '../libs/Gamepad.js';
-import Mapping from '../libs/GamepadMappings.js';
+import { Mapping } from 'gamepad';
 
 export default class Controler extends DockTab {
 

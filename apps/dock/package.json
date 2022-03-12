@@ -1,10 +1,10 @@
 {
   "name": "obs-tools-widget",
   "version": "1.0.0",
-  "description": "![Feature Image](./feature.jpg)",
+  "description": "tools custom dock",
   "main": "index.js",
   "scripts": {
-    "build:w": "rollup -c -w",
+    "dev": "rollup -c -w",
     "build": "rollup -c"
   },
   "repository": {

@@ -1,5 +1,5 @@
-import OBS from "./OBS";
-import Easing from './Easing';
+import { OBS } from "./OBS";
+import { Easing } from './Easing';
 
 const lerp = (x, y, a) => x * (1 - a) + y * a;
 
@@ -53,7 +53,7 @@ async function transitionState(scene, source, fromState, toState, easingFunc, le
     }, 1000 / 60);
 }
 
-export default class Transitions {
+export class Transitions {
 
     static async getState(sourceName) {
         return OBS.getSceneItemProperties({ name: sourceName });

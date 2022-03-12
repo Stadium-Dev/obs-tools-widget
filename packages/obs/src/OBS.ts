@@ -1,5 +1,5 @@
 // localStorage.debug = 'obs-websocket-js:*';
-import Config from '../Config.js';
+import Config from '../../../apps/dock/src/Config.js';
 
 const tickrate = 1000 / 12;
 const lokalStatus = {
@@ -159,7 +159,7 @@ async function connectionOpende() {
 
 const listeners = {};
 
-export default class OBS {
+export class OBS {
 
     static getState() {
         return lokalStatus;

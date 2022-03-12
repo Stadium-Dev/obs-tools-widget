@@ -1,7 +1,7 @@
 import { css, html } from 'lit-element';
 import Config from '../Config.js';
 import DockTab from './DockTab.js';
-import Easing from '../obs/Easing';
+import { Easing } from 'obs';
 import LayoutPresets from '../LayoutPresets.js';
 import './FluidInput';
 import './DropdownButton.js';

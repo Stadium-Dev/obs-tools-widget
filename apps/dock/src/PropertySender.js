@@ -1,4 +1,4 @@
-import OBS from './obs/OBS';
+import { OBS } from 'obs';
 
 const updateCallbacks = [];
 

@@ -1,5 +1,5 @@
 (function() {
-    const env = {"__ENV__":"development","__PACKAGE__":{"version":"1.0.0","name":"obs-tools-widget","description":"![Feature Image](./feature.jpg)"}};
+    const env = {"__ENV__":"development","__PACKAGE__":{"version":"1.0.4","name":"obs-tools-widget","description":""}};
     try {
         if (process) {
             process.env = Object.assign({}, process.env);
@@ -4233,6 +4233,90 @@ class OBS {
 
 }
 
+/*
+ * Easing Functions - inspired from http://gizma.com/easing/
+ * only considering the t value for the range [0, 1] => [0, 1]
+ */
+const Easing = {
+    linear: (t) => t,
+    easeInQuad: (t) => t * t,
+    easeOutQuad: (t) => t * (2 - t),
+    easeInOutQuad: (t) => t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
+    easeInCubic: (t) => t * t * t,
+    easeOutCubic: (t) => (--t) * t * t + 1,
+    easeInOutCubic: (t) => t < .5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1,
+    // easeInQuart: (t) => t * t * t * t,
+    // easeOutQuart: (t) => 1 - (--t) * t * t * t,
+    // easeInOutQuart: (t) => t < .5 ? 8 * t * t * t * t : 1 - 8 * (--t) * t * t * t,
+    // easeInQuint: (t) => t * t * t * t * t,
+    // easeOutQuint: (t) => 1 + (--t) * t * t * t * t,
+    // easeInOutQuint: (t) => t < .5 ? 16 * t * t * t * t * t : 1 + 16 * (--t) * t * t * t * t
+};
+
+const lerp = (x, y, a) => x * (1 - a) + y * a;
+
+function interpolateState(a, state1, state2) {
+    return {
+        crop: {
+            bottom: lerp(state1.crop.bottom, state2.crop.bottom, a),
+            left: lerp(state1.crop.left, state2.crop.left, a),
+            right: lerp(state1.crop.right, state2.crop.right, a),
+            top: lerp(state1.crop.top, state2.crop.top, a)
+        },
+        position: {
+            alignment: 5,
+            x: lerp(state1.position.x, state2.position.x, a),
+            y: lerp(state1.position.y, state2.position.y, a)
+        },
+        rotation: lerp(state1.rotation, state2.rotation, a),
+        scale: {
+            x: lerp(state1.scale.y, state2.scale.y, a),
+            y: lerp(state1.scale.y, state2.scale.y, a)
+        },
+        width: lerp(state1.width, state2.width, a),
+        height: lerp(state1.height, state2.height, a),
+    }
+}
+
+async function transitionState(scene, source, fromState, toState, easingFunc, length) {
+    const oldState = fromState;
+    const newState = toState;
+
+    OBS.setSceneItemProperties(scene, source, oldState);
+
+    let lastTick = 0;
+    let t = 0;
+
+    const int = setInterval(() => {
+        const delta = Date.now() - lastTick;
+
+        if (lastTick && t < 1) {
+            t += (delta / 1000) / length;
+
+            const v = easingFunc(t);
+
+            const interpState = interpolateState(v, oldState, newState);
+            OBS.setSceneItemProperties(scene, source, interpState);
+        } else if(lastTick) {
+            clearInterval(int);
+        }
+
+        lastTick = Date.now();
+    }, 1000 / 60);
+}
+
+class Transitions {
+
+    static async getState(sourceName) {
+        return OBS.getSceneItemProperties({ name: sourceName });
+    }
+
+    static async transitionSource(scene, source, fromState, toState, easingFunc, len) {
+        transitionState(scene, source, fromState, toState, easingFunc, len);
+    }
+
+}
+
 const updateCallbacks = [];
 
 class PropertySender {
@@ -5237,90 +5321,6 @@ class Luckybot extends DockTab {
 
 customElements.define('obs-1uckybot-tab', Luckybot);
 
-/*
- * Easing Functions - inspired from http://gizma.com/easing/
- * only considering the t value for the range [0, 1] => [0, 1]
- */
-var Easing = {
-    linear: (t) => t,
-    easeInQuad: (t) => t * t,
-    easeOutQuad: (t) => t * (2 - t),
-    easeInOutQuad: (t) => t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
-    easeInCubic: (t) => t * t * t,
-    easeOutCubic: (t) => (--t) * t * t + 1,
-    easeInOutCubic: (t) => t < .5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1,
-    // easeInQuart: (t) => t * t * t * t,
-    // easeOutQuart: (t) => 1 - (--t) * t * t * t,
-    // easeInOutQuart: (t) => t < .5 ? 8 * t * t * t * t : 1 - 8 * (--t) * t * t * t,
-    // easeInQuint: (t) => t * t * t * t * t,
-    // easeOutQuint: (t) => 1 + (--t) * t * t * t * t,
-    // easeInOutQuint: (t) => t < .5 ? 16 * t * t * t * t * t : 1 + 16 * (--t) * t * t * t * t
-};
-
-const lerp = (x, y, a) => x * (1 - a) + y * a;
-
-function interpolateState(a, state1, state2) {
-    return {
-        crop: {
-            bottom: lerp(state1.crop.bottom, state2.crop.bottom, a),
-            left: lerp(state1.crop.left, state2.crop.left, a),
-            right: lerp(state1.crop.right, state2.crop.right, a),
-            top: lerp(state1.crop.top, state2.crop.top, a)
-        },
-        position: {
-            alignment: 5,
-            x: lerp(state1.position.x, state2.position.x, a),
-            y: lerp(state1.position.y, state2.position.y, a)
-        },
-        rotation: lerp(state1.rotation, state2.rotation, a),
-        scale: {
-            x: lerp(state1.scale.y, state2.scale.y, a),
-            y: lerp(state1.scale.y, state2.scale.y, a)
-        },
-        width: lerp(state1.width, state2.width, a),
-        height: lerp(state1.height, state2.height, a),
-    }
-}
-
-async function transitionState(scene, source, fromState, toState, easingFunc, length) {
-    const oldState = fromState;
-    const newState = toState;
-
-    OBS.setSceneItemProperties(scene, source, oldState);
-
-    let lastTick = 0;
-    let t = 0;
-
-    const int = setInterval(() => {
-        const delta = Date.now() - lastTick;
-
-        if (lastTick && t < 1) {
-            t += (delta / 1000) / length;
-
-            const v = easingFunc(t);
-
-            const interpState = interpolateState(v, oldState, newState);
-            OBS.setSceneItemProperties(scene, source, interpState);
-        } else if(lastTick) {
-            clearInterval(int);
-        }
-
-        lastTick = Date.now();
-    }, 1000 / 60);
-}
-
-class Transitions {
-
-    static async getState(sourceName) {
-        return OBS.getSceneItemProperties({ name: sourceName });
-    }
-
-    static async transitionSource(scene, source, fromState, toState, easingFunc, len) {
-        transitionState(scene, source, fromState, toState, easingFunc, len);
-    }
-
-}
-
 let presets = Config.get('layout-presets') || [];
 
 class LayoutPresets {
@@ -6319,7 +6319,7 @@ class Controler extends DockTab {
                     const mappedTo = this.buttonMap[label];
 
                     for(let fn in mappedTo) {
-                        OBS$1[fn](mappedTo[fn]);
+                        OBS[fn](mappedTo[fn]);
                     }
 
                     this.update();

@@ -1,7 +1,5 @@
 import Config from './Config.js';
-import Transitions from './obs/Transitions';
-import Easing from './obs/Easing';
-import OBS from './obs/OBS';
+import { Easing, OBS, Transitions } from 'obs';
 
 let presets = Config.get('layout-presets') || [];
 

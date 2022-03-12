@@ -1,0 +1,9 @@
+{
+    "name": "gamepad",
+    "version": "1.0.0",
+    "description": "gamepad integration",
+    "main": "./index.ts",
+    "types": "./index.ts",
+    "author": "",
+    "license": "ISC"
+}
