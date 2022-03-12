@@ -20,7 +20,7 @@ const envVars = {
 export default {
     input: 'src/main.ts',
     output: {
-        file: 'public/dock/main.bundle.js',
+        file: 'public/main.bundle.js',
         format: 'esm'
     },
     plugins: [
