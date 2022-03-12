@@ -1,5 +1,5 @@
-import Config from "../libs/Config.js";
-import Streamlabs from "../services/Streamlabs.js";
+import Config from "./Config.js";
+import Streamlabs from "./services/Streamlabs.js";
 
 const labelData = Config.get('labels') || {};
 
