@@ -1,5 +1,5 @@
 import typescript from '@rollup/plugin-typescript';
-import Package from './package.json';
+import Package from '../../package.json';
 
 import webWorkerLoader from 'rollup-plugin-web-worker-loader';
 import node_resolve from '@rollup/plugin-node-resolve';

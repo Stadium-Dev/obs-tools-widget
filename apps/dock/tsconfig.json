@@ -1,6 +1,6 @@
 {
     "files": [
-        "./src/main.ts"
+        "apps/dock/src/main.ts"
     ],
     "compileOnSave": true,
     "compilerOptions": {
@@ -9,7 +9,7 @@
         "preserveConstEnums": true,
         "removeComments": true,
         "sourceMap": true,
-        "outDir": "./public/dock",
+        "outDir": "apps/dock/public/dock",
         "moduleResolution": "node",
         "experimentalDecorators": true
     }

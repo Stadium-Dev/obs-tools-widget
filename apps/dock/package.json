@@ -1,0 +1,29 @@
+{
+  "name": "obs-tools-widget",
+  "version": "1.0.0",
+  "description": "![Feature Image](./feature.jpg)",
+  "main": "index.js",
+  "scripts": {
+    "build:w": "rollup -c -w",
+    "build": "rollup -c"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luckydye/obs-tools-widget.git"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^13.0.4",
+    "@rollup/plugin-typescript": "^8.2.5",
+    "lit-element": "^2.5.1",
+    "rollup": "^2.54.0",
+    "rollup-plugin-inject-process-env": "^1.3.1",
+    "rollup-plugin-web-worker-loader": "^1.6.1",
+    "typescript": "^4.3.5"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/luckydye/obs-tools-widget/issues"
+  },
+  "homepage": "https://github.com/luckydye/obs-tools-widget#readme"
+}
