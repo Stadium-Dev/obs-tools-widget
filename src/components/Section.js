@@ -1,5 +1,5 @@
-import { css, html, LitElement } from 'https://cdn.skypack.dev/lit-element@2.4.0';
-import Config from '../libs/Config.js';
+import { css, html, LitElement } from 'lit-element';
+import Config from '../Config.js';
 import './Switch.js';
 
 export default class DockTabSection extends LitElement {
@@ -10,7 +10,7 @@ export default class DockTabSection extends LitElement {
                 margin: 0px;
                 position: relative;
                 display: block;
-                --content-padding: 10px;
+                --content-padding: 8px 8px 12px 8px;
             }
             .title {
                 line-height: 100%;

@@ -1,4 +1,4 @@
-import { html, css, LitElement } from 'https://cdn.skypack.dev/lit-element@2.4.0';
+import { html, css, LitElement } from 'lit-element';
 
 export default class Switch extends LitElement {
 

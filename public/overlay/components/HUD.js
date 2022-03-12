@@ -1,12 +1,13 @@
-import { css, html, LitElement } from 'https://cdn.skypack.dev/lit-element@2.4.0';
-import Config from '../../dock/libs/Config.js';
+import { css, html, LitElement } from '../libs/lit-element.js';
+import Config from '../../dock/Config.js';
 
 export default class OverlayHud extends LitElement {
 
     static get styles() {
         return css`
-
             :host {
+                --text-color: #eee;
+
                 display: block;
                 position: fixed;
                 top: 0;
@@ -17,9 +18,9 @@ export default class OverlayHud extends LitElement {
                 display: flex;
                 justify-content: center;
                 align-items: flex-end;
-                color: #eee;
                 font-family: 'Lato';
                 font-size: 28px;
+                color: var(--text-color);
             }
             .container::after,
             .container::before {
@@ -29,7 +30,7 @@ export default class OverlayHud extends LitElement {
                 position: absolute;
                 top: 0px;
                 left: 0px;
-                height: 138%;
+                height: 150%;
                 width: 1px;
                 background: #eee;
                 transform-origin: 0 0;
@@ -46,9 +47,9 @@ export default class OverlayHud extends LitElement {
                 top: 0;
                 left: 0;
                 width: 100%;
-                height: 100%;
+                height: 105%;
                 clip-path: polygon(0 0, 100% 0, calc(100% - 40px) 100%, 40px 100%);
-                background: linear-gradient(180deg, hsl(0deg 0% 0% / 50%), hsl(0deg 0% 0% / 0%));
+                background: linear-gradient(180deg, hsl(0deg 0% 0% / 75%), hsl(0deg 0% 0% / 0%));
                 z-index: -1;
             }
             .timer {
@@ -64,14 +65,35 @@ export default class OverlayHud extends LitElement {
             .sub-counter {
                 
             }
+            .left {
+                position: absolute;
+                right: calc(50% - 300px);
+                text-align: right;
+                display: var(--display-left, block);
+            }
+            .right {
+                position: absolute;
+                left: calc(50% - 300px);
+                text-align: left;
+                display: var(--display-right, block);
+            }
+            .left, .right {
+                font-size: 24px;
+                white-space: nowrap;
+            }
         `;
     }
 
     constructor() {
         super();
 
+        this.prefixString = "T-";
+
+        this.subs = 0;
+        this.donated = 0;
+
         this.time = 60 * 60 * 12;
-        this.timerPlaying = true;
+        this.timerPlaying = false;
 
         if(Config.get('timer')) {
             this.time = Config.get('timer');
@@ -163,17 +185,19 @@ export default class OverlayHud extends LitElement {
 
         return html`
             <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400&display=swap" rel="stylesheet">
+            <div class="left">${this.subs}</div>
             <div class="container">
                 <div class="background"></div>
             </div>
             <div class="timer">
-                <span class="prefix">T-</span>
+                <span class="prefix">${this.prefixString}</span>
                 <span>${hours.toFixed(0).padStart(2, "0")}</span>
                 <span class="seperator">:</span>
                 <span>${minutes.toFixed(0).padStart(2, "0")}</span>
                 <span class="seperator">:</span>
                 <span>${seconds.toFixed(0).padStart(2, "0")}</span>
             </div>
+            <div class="right">${this.donated} €</div>
             <slot></slot>
         `;
     }

@@ -11,6 +11,12 @@ Several Tools and simple browsing and configuration of custom overlays.
 ## Features:
 - [x] Timer
 - [x] Subathon timer tools
-- [ ] Connect to twitch for PubSub integration and more (enables Channel Point Rewards)
 - [x] Video Assist features (with OBS flag "--use-fake-ui-for-media-stream")
+- [x] Source Layout Presets
+- [x] Overlay properties (with https://github.com/Palakis/obs-websocket/blob/4.x-current/docs/generated/protocol.md#sceneitemselected)
+- [ ] Connect to twitch for PubSub integration and more (enables Channel Point Rewards)
 - [ ] Overlay properties
+- [ ] Midi Scene Switching and trigger layout presets
+- [ ] Add Custom Overlays
+- [ ] Scene/Source Presets like the overlay. creating sources with socket.
+    

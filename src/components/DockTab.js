@@ -1,4 +1,4 @@
-import { css, html, LitElement } from 'https://cdn.skypack.dev/lit-element@2.4.0';
+import { css, html, LitElement } from 'lit-element';
 
 export default class DockTab extends LitElement {
 
@@ -64,7 +64,7 @@ export default class DockTab extends LitElement {
                 font-size: 14px;
                 opacity: 0.75;
                 color: #eee;
-                margin: 0 0 5px 0;
+                margin: 0;
                 display: block;
             }
 
@@ -108,6 +108,16 @@ export default class DockTab extends LitElement {
                 padding: 4px 7px 5px 7px;
                 box-sizing: border-box;
                 line-height: 18px;
+            }
+            .row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                margin-bottom: 8px;
+                margin-top: 8px;
+                margin-left: 10px;
+                margin-right: 10px;
             }
         `;
     }

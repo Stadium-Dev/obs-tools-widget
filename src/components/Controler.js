@@ -1,6 +1,6 @@
 // obs-controler
-import { css, html } from 'https://cdn.skypack.dev/lit-element@2.4.0';
-import OBS from '../libs/OBS.js';
+import { css, html } from 'lit-element';
+import OBS from '../OBS.js';
 import DockTab from './DockTab.js';
 import '../libs/Gamepad.js';
 import Mapping from '../libs/GamepadMappings.js';

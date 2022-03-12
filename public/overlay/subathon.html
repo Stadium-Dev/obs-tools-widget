@@ -1,40 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <script type="module" src="./components/HUD.js"></script>
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400&display=swap" rel="stylesheet">
     <style>
-        /* body {
-            background: #777;
-        } */
+        body {
+            background: transparent;
+        }
         .timer-action {
             position: absolute;
             top: 120%;
             font-size: 18px;
             z-index: -1;
         }
+
         .show-animation {
             animation: show .4s ease both;
         }
+
         .hide-animation {
             animation: hide .2s ease both;
         }
+
         @keyframes hide {
             from {
                 opacity: 1;
                 transform: translate(0, 0);
             }
+
             to {
                 opacity: 0;
                 transform: translate(0, -20px);
             }
         }
+
         @keyframes show {
             from {
                 opacity: 0;
                 transform: translate(0, 50px);
             }
+
             to {
                 opacity: 1;
                 transform: translate(0, 0);
@@ -42,6 +49,7 @@
         }
     </style>
 </head>
+
 <body>
     <obs-overlay-hud></obs-overlay-hud>
     <script>
@@ -52,17 +60,73 @@
             const data = ev.data;
             const type = data.type;
 
-            if(type == "timer") {
+            if (type == "timer") {
                 const time = data.time;
                 const playstate = data.playstate;
+
+                timerHud.subs = data.subs;
+                timerHud.donated = data.donated;
+
                 timerHud.setTime(time);
-                if(playstate == 0) {
+                if (playstate == 0) {
                     timerHud.pauseTimer();
-                } else if(playstate == 1) {
+                } else if (playstate == 1) {
                     timerHud.playTimer();
                 }
             }
         }
     </script>
+    <script type="module">
+        import { Provider, PropertyStorage } from './libs/property-provider.js';
+
+        const propSaveId = "subathon-overlay-properties-v1";
+
+        const props = {
+            prefix: {
+                name: "Prefix",
+                type: "string",
+                default: "T-",
+                value: "T-",
+            },
+            textColor: {
+                name: "Text Color",
+                type: "color",
+                default: "#eee",
+                value: "#eee",
+            },
+            showSubs: {
+                name: "Show sub count",
+                type: "boolean",
+                default: 0,
+                value: 0,
+            },
+            showDonos: {
+                name: "Show donated amount",
+                type: "boolean",
+                default: 0,
+                value: 0,
+            },
+        }
+        
+        const store = new PropertyStorage(propSaveId, props);
+
+        Provider.onPropertyUpdate(e => {
+            // update ui
+            updateUI();
+        })
+
+        function updateUI() {
+            const ele = document.querySelector('obs-overlay-hud');
+            ele.style.setProperty('--text-color', props.textColor.value);
+            ele.style.setProperty('--display-left', props.showSubs.value === 1 ? "block" : "none");
+            ele.style.setProperty('--display-right', props.showDonos.value === 1 ? "block" : "none");
+            ele.prefixString = props.prefix.value;
+            ele.update();
+        }
+
+        updateUI();
+
+    </script>
 </body>
+
 </html>

@@ -1,4 +1,4 @@
-import { css, html } from 'https://cdn.skypack.dev/lit-element@2.4.0';
+import { css, html } from 'lit-element';
 import DockTab from './DockTab.js';
 
 export default class VideoAssist extends DockTab {
