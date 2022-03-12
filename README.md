@@ -1,5 +1,7 @@
 # Multi Tool Dock for OBS Studio
 
+Simple browsing and configuration of custom overlays.
+
 ![Feature Image](./feature.jpg)
 
 ## OBS Custom Dock URL:
