@@ -1,6 +1,6 @@
 import { css, html } from 'lit-element';
-import Config from '../Config.js';
-import DockTab from './DockTab.js';
+import Config from '../services/Config.js';
+import DockTab from '../components/DockTab.js';
 import Twitch from '../services/Twitch.js';
 
 export default class Settings extends DockTab {

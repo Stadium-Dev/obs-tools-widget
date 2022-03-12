@@ -1,5 +1,5 @@
 // localStorage.debug = 'obs-websocket-js:*';
-import Config from '../../../apps/dock/src/Config.js';
+import Config from '../../../apps/dock/src/services/Config.js';
 
 const tickrate = 1000 / 12;
 const lokalStatus = {

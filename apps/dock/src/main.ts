@@ -1,13 +1,15 @@
-import "./components/Timer.js";
-import "./components/Settings.js";
-import "./components/Overlay.js";
-import "./components/Luckybot.js";
-import "./components/ScenePresets.js";
-import "./components/Controler.js";
-// import "./components/MidiSceneSwitcher.js";
-import "./components/OverlayProperties.js";
-import "./Streamlabs.js";
-import "./Labels.js";
+import "./components";
+
+import "./modules/Timer.js";
+import "./modules/Settings.js";
+import "./modules/overlay/Overlay.js";
+import "./modules/overlay/OverlayProperties.js";
+import "./modules/Luckybot.js";
+import "./modules/ScenePresets.js";
+import "./modules/Controler.js";
+import "./modules/MidiSceneSwitcher.js";
+import "./modules/Labels.js";
+import "./services/Streamlabs.js";
 
 function uuidv4() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {

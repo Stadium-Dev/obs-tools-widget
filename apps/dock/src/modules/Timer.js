@@ -1,9 +1,8 @@
 import { css, html } from 'lit-element';
-import Config from '../Config.js';
-import OBS from '../OBS.js';
-import Streamlabs from '../Streamlabs.js';
-import DockTab from './DockTab.js';
-import './Section.js';
+import Config from '../services/Config.js';
+import { OBS } from 'obs';
+import Streamlabs from '../services/Streamlabs.js';
+import DockTab from '../components/DockTab.js';
 
 // Streamlabs stuff
 

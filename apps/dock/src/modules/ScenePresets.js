@@ -1,10 +1,7 @@
 import { css, html } from 'lit-element';
-import Config from '../Config.js';
-import DockTab from './DockTab.js';
-import { Easing } from 'obs';
-import LayoutPresets from '../LayoutPresets.js';
-import './FluidInput';
-import './DropdownButton.js';
+import Config from '../services/Config.js';
+import DockTab from '../components/DockTab.js';
+import { Easing, LayoutPresets } from 'obs';
 
 export default class ScenePresets extends DockTab {
 

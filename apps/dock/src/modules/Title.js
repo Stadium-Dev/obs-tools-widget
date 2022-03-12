@@ -1,6 +1,6 @@
 import { css, html } from 'lit-element';
 import Config from '../Config.js';
-import DockTab from './DockTab.js';
+import DockTab from '../components/DockTab.js';
 
 if(!Config.get('stream-title')) {
     Config.set('stream-title', "Title");

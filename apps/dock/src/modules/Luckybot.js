@@ -1,8 +1,8 @@
 import { css, html } from 'lit-element';
-import Config from '../Config.js';
-import Overlays from '../Overlays.js';
-import DockTab from './DockTab.js';
-import OBS from '../OBS.js';
+import Config from '../services/Config.js';
+import Overlays from '../services/Overlays.js';
+import DockTab from '../components/DockTab.js';
+import { OBS } from 'obs';
 
 function setStatus(str) {
     const tabEle = document.querySelector('obs-1uckybot-tab');

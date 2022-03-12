@@ -1,9 +1,11 @@
-import Config from './Config.js';
-import { Easing, OBS, Transitions } from 'obs';
+import Config from '../../../apps/dock/src/services/Config.js';
+import { Easing } from './Easing';
+import { OBS } from './OBS';
+import { Transitions } from './Transitions';
 
 let presets = Config.get('layout-presets') || [];
 
-export default class LayoutPresets {
+export class LayoutPresets {
 
     static getPresets() {
         return presets;

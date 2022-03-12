@@ -1,3 +1,5 @@
+import { Midi } from 'midi';
+
 (function() {
     const env = {"__ENV__":"development","__PACKAGE__":{"version":"1.0.4","name":"obs-tools-widget","description":""}};
     try {
@@ -2432,1979 +2434,6 @@ LitElement.render = render;
 /** @nocollapse */
 LitElement.shadowRootOptions = { mode: 'open' };
 
-const eventTarget$1 = new EventTarget();
-
-class ConfigChangeEvent extends Event {
-
-    constructor(key, oldValue, newValue) {
-        super('change');
-        this.key = key;
-        this.newValue = newValue;
-        this.oldValue = oldValue;
-    }
-
-}
-
-const store = JSON.parse(localStorage.getItem('obs-tools-store') || "{}");
-
-class Config {
-
-    static on(key, callback) {
-        eventTarget$1.addEventListener('change', e => {
-            if(e.key == key) {
-                callback(e);
-            }
-        });
-    }
-
-    static set(key, value) {
-        const oldValue = this.get(key);
-        store[key] = value;
-        const event = new ConfigChangeEvent(key, oldValue, value);
-        eventTarget$1.dispatchEvent(event);
-        localStorage.setItem('obs-tools-store', JSON.stringify(store));
-    }
-
-    static get(key) {
-        return store[key];
-    }
-
-    static serialize() {
-        return localStorage.getItem('obs-tools-store');
-    }
-
-    static fullReset() {
-        localStorage.setItem('obs-tools-store', "{}");
-        location.reload();
-    }
-
-    static copySaveToClipboard() {
-        navigator.clipboard.writeText(this.serialize());
-    }
-
-}
-
-const tickrate$1 = 1000 / 12;
-const lokalStatus$1 = {};
-let sourceTypeList = [];
-let sourceTypeMap = {};
-
-window.obsState = lokalStatus$1;
-
-const obs$1 = new OBSWebSocket();
-const obsWebSocketPort$1 = Config.get('obs-websocket-port') || "localhost:4444";
-const obsWebSocketPassword = Config.get('obs-websocket-password') || null;
-obs$1.connect({
-    address: obsWebSocketPort$1,
-    password: obsWebSocketPassword
-});
-
-obs$1.on('ConnectionClosed', connectionClosed$1);
-obs$1.on('ConnectionOpened', connectionOpende$1);
-obs$1.on('AuthenticationSuccess', authSuccess$1);
-obs$1.on('AuthenticationFailure', authFailed$1);
-
-function log$2(...args) {
-    console.log('[OBS]', ...args);
-}
-
-function authFailed$1() {
-    log$2('Connection auth failed');
-}
-
-function authSuccess$1() {
-    log$2('Connection auth success');
-}
-
-function connectionClosed$1() {
-    log$2('Connection closed');
-}
-
-function connectionOpende$1() {
-    log$2('Connection opened');
-
-    const reqUpdate = () => {
-        Promise.all([
-            obs$1.send('GetStats').then(data => {
-                lokalStatus$1.stats = data.stats;
-            }),
-            obs$1.send('GetVideoInfo').then(data => {
-                lokalStatus$1.video = data;
-            }),
-            obs$1.send('GetStreamingStatus').then(data => {
-                lokalStatus$1.stream = data;
-            })
-        ]);
-    };
-    
-    setInterval(reqUpdate, tickrate$1);
-    reqUpdate();
-
-    OBS$1.getSourceTypesList().then(data => {
-        sourceTypeList = data.types;
-
-        for(let type of sourceTypeList) {
-            sourceTypeMap[type.typeId] = type;
-        }
-    });
-
-    eventTarget.dispatchEvent(new Event('ready'));
-}
-
-const eventTarget = new EventTarget();
-
-class OBS$1 {
-
-    static getState() {
-        return lokalStatus$1;
-    }
-
-    static on(event, callback) {
-        return obs$1.on(event, callback);
-    }
-
-    static onReady(callback) {
-        eventTarget.addEventListener('ready', callback);
-        return function remove() {
-            eventTarget.removeEventListener('ready', callback);
-        }
-    }
-
-    static async getScenes() {
-        return obs$1.send('GetSceneList').then(data => data.scenes);
-    }
-
-    static async getCurrentScene() {
-        return obs$1.send('GetCurrentScene').then(data => data.name);
-    }
-
-    static async getSourcesList() {
-        return obs$1.send('GetSourcesList').then(data => data.sources.map(source => new Source(source)));
-    }
-
-    static async getSceneItemList(sceneName) {
-        return obs$1.send('GetSceneItemList').then(data => {
-            return data.sceneItems.map(item => new Source(item));
-        });
-    }
-
-    static async getSourceTypesList() {
-        return obs$1.send('GetSourceTypesList').then(data => data);
-    }
-
-    static async setVolume(sourceName, vol) {
-        return obs$1.send('SetVolume', { 'source': sourceName, volume: Math.pow(vol, 2) });
-    }
-
-    static async getVolume(sourceName) {
-        return obs$1.send('GetVolume', { 'source': sourceName }).then(data => data);
-    }
-
-    static async getAudioMonitorType(sourceName) {
-        return obs$1.send('GetAudioMonitorType', { 'sourceName': sourceName }).then(data => data);
-    }
-
-    static async getAudioActive(sourceName) {
-        return obs$1.send('GetAudioActive', { 'sourceName': sourceName }).then(data => data);
-    }
-
-    static setCurrentScene(sceneName) {
-        console.log(sceneName);
-        return obs$1.send('SetCurrentScene', { 'scene-name': sceneName });
-    }
-
-}
-
-class Source {
-
-    constructor(sourceJson) {
-        this.data = sourceJson;
-        this.kind = sourceTypeMap[this.data.sourceKind || this.data.typeId];
-    }
-
-    get name() {
-        return this.data.sourceName || this.data.name;
-    }
-
-    get hasAudio() {
-        return this.kind.caps.hasAudio;
-    }
-
-    get hasVideo() {
-        return this.kind.caps.hasVideo;
-    }
-
-}
-
-class Streamlabs$1 {
-
-    static get connected() {
-        return this.socket ? this.socket.connected : false;
-    }
-
-    static on(event, callback) {
-        const listeners = this.listeners;
-        listeners[event] = listeners[event] ? listeners[event] : [];
-        listeners[event].push(callback);
-    }
-
-    static emit(event, msg) {
-        const listeners = this.listeners;
-        if(listeners[event]) {
-            for(let callback of listeners[event]) callback(msg);
-        }
-    }
-
-    static disconnect() {
-        this.socket.disconnect();
-    }
-
-    static async connect() {
-        return new Promise(async (resolve, reject) => {
-            if(!this.socket) {
-                const access_token = Config.get('streamlabs-websocket-token');
-                const service = `https://sockets.streamlabs.com?token=${access_token}`;
-
-                this.socket = io(service, { transports: ['websocket'] });
-    
-                this.socket.on('event', (event) => {
-                    const events = ['raid', 'follow', 'donation', 'host', 'subscription', 'resub'];
-
-                    if(events.includes(event.type)) {
-                        for(let message of event.message) {
-                            message.type = event.type;
-                            this.emit(event.type, message);
-                        }
-                    }
-                });
-
-                this.socket.on('connect', () => {
-                    console.log('connected');
-                    resolve(this.connected);
-                });
-
-            } else {
-                reject();
-            }
-        }).catch(err => {
-            if(err) console.error(err);
-        })
-    }
-
-}
-
-Config.on('streamlabs-websocket-token', e => {
-    console.log(e);
-    Streamlabs$1.connect();
-});
-
-Streamlabs$1.connect();
-
-Streamlabs$1.socket = null;
-Streamlabs$1.listeners = {};
-
-class DockTab extends LitElement {
-
-    static get styles() {
-        return css`
-            :host {
-                display: block;
-                box-sizing: border-box;
-                overflow: auto;
-                user-select: none;
-            }
-            input, textarea, select {
-                user-select: all;
-                border: 1px solid #363636;
-                border-radius: 3px;
-                background: hsl(0, 0%, 10%);
-                outline: none;
-                color: #eee;
-                padding: 5px 8px;
-                font-size: 13px;
-            }
-            [disabled] {
-                opacity: 0.75;
-            }
-            button {
-                border: 1px solid rgb(64 64 64);
-                border-radius: 3px;
-                background: #363636;
-                outline: none;
-                color: #eee;
-                padding: 6px 8px;
-                cursor: pointer;
-                min-width: 40px;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-            }
-            button.secondary {
-                background: #272727;
-                color: #ccc;
-                letter-spacing: -1px;
-            }
-            button:hover {
-                background: rgb(60 60 60);
-            }
-            button:active {
-                background: rgb(47 47 47);
-            }
-            button[disabled] {
-                cursor: default;
-                background: rgb(47 47 47);
-            }
-            button.icon-button {
-                height: 29px;
-                width: 29px;
-                min-width: auto;
-                vertical-align: bottom;
-            }
-            button .material-icons {
-                font-size: 18px;
-            }
-            label {
-                font-size: 14px;
-                opacity: 0.75;
-                color: #eee;
-                margin: 0;
-                display: block;
-            }
-
-            ::-webkit-scrollbar {
-                width: 8px;
-                margin: 0 4px;
-                margin-left: 2px;
-            }
-            ::-webkit-scrollbar-button {
-                display: none;
-            }
-            ::-webkit-scrollbar-track-piece  {
-                background: #1c1c1c;
-            }
-            ::-webkit-scrollbar-thumb {
-                background: #333;
-                border-radius: 5px;
-                border: none;
-            }
-            ::-webkit-scrollbar-thumb:hover {
-                background: #444;
-            }
-            .section {
-                margin: 0px;
-                border-left: 1px solid rgb(41, 41, 41);
-                border-right: 1px solid rgb(41, 41, 41);
-                position: relative;
-            }
-            .section-content {
-                padding: 10px;
-                background: #1c1c1c;
-            }
-            .section[section-title]::before {
-                content: attr(section-title);
-                display: block;
-                width: 100%;
-                text-align: left;
-                font-size: 12px;
-                color: rgb(152 152 152);
-                font-weight: 400;
-                padding: 4px 7px 5px 7px;
-                box-sizing: border-box;
-                line-height: 18px;
-            }
-            .row {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                flex-wrap: wrap;
-                margin-bottom: 8px;
-                margin-top: 8px;
-                margin-left: 10px;
-                margin-right: 10px;
-            }
-        `;
-    }
-
-    get active() {
-        return this.hasAttribute('active');
-    }
-
-    get hidden() {
-        return this.hasAttribute('hidden');
-    }
-
-    set hidden(bool) {
-        if(bool) {
-            this.setAttribute('hidden', '');
-        } else {
-            this.removeAttribute('hidden');
-        }
-    }
-
-    constructor() {
-        super();
-    }
-
-    connectedCallback() {
-        super.connectedCallback();
-    }
-
-    render() {
-        return html`
-            <div>obs-dock-tab</div>
-        `;
-    }
-}
-
-customElements.define('obs-dock-tab', DockTab);
-
-class Switch extends LitElement {
-
-    static get styles() {
-        return css`
-            :host {
-                --button-size: 14px;
-                --global-font-color: #eee;
-                --accent-color: #2f77b1;
-                
-                border-radius: 100px;
-                overflow: hidden;
-                background: black;
-                cursor: pointer;
-                width: calc(var(--button-size) * 2);
-                display: inline-block;
-            }
-            :host([checked]) .switch-handle {
-                transform: translateX(100%);
-            }
-            .switch {
-                z-index: 1;
-                position: relative;
-            }
-            .switch:active .switch-handle-thumb {
-                filter: brightness(0.85);
-            }
-            .switch-handle {
-                height: var(--button-size);
-                width: var(--button-size);
-                position: relative;
-                transition: transform .15s cubic-bezier(0.38, 0, 0.08, 1.01);
-            }
-            .switch-handle::after,
-            .switch-handle::before {
-                content: "";
-                top: 0;
-                height: 100%;
-                position: absolute;
-                width: calc(var(--button-size) * 2);
-            }
-            .switch-handle::after {
-                left: 50%;
-                background: #444;
-            }
-            .switch-handle::before {
-                right: 50%;    
-                background: var(--accent-color);
-            }
-            .switch-handle-thumb {
-                width: 100%;
-                height: 100%;
-                border-radius: 50%;
-                position: relative;
-                z-index: 1000;
-                background: var(--global-font-color);
-            }
-        `;
-    }
-
-    static get properties() {
-        return {
-            checked: {}
-        };
-    }
-
-    get checked() {
-        return this.hasAttribute('checked') && this.getAttribute('checked') != "false";
-    }
-
-    set checked(value) {
-        if (value === false) {
-            this.removeAttribute('checked');
-        } else if (value === true) {
-            this.setAttribute('checked', '');
-        }
-    }
-
-    render() {
-        const clickHandler = () => {
-            this.checked = !this.checked;
-            this.dispatchEvent(new Event('change'));
-        };
-
-        return html`
-            <div class="switch" @click=${clickHandler}>
-                <div class="switch-handle">
-                    <div class="switch-handle-thumb"></div>
-                </div>
-            </div>
-        `;
-    }
-}
-
-customElements.define('input-switch', Switch);
-
-class DockTabSection extends LitElement {
-
-    static get styles() {
-        return css`
-            :host {
-                margin: 0px;
-                position: relative;
-                display: block;
-                --content-padding: 8px 8px 12px 8px;
-            }
-            .title {
-                line-height: 100%;
-            }
-            .header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                width: 100%;
-                text-align: left;
-                font-size: 12px;
-                color: rgb(152 152 152);
-                font-weight: 400;
-                padding: 5px 7px 5px 7px;
-                box-sizing: border-box;
-                margin-bottom: 1px;
-            }
-            .switch input {
-                margin: 0;
-            }
-            .content {
-                display: block;
-                padding: var(--content-padding);
-            }
-            .content:not([enabled]) {
-                display: none;
-            }
-        `;
-    }
-
-    constructor() {
-        super();
-
-        
-        this._enbaled = this.optional ? (Config.get(this.configKey) || false) : true;
-    }
-
-    connectedCallback() {
-        super.connectedCallback();
-        
-        this.dispatchEvent(new Event('change'));
-    }
-
-    get enabled() {
-        return this._enbaled;
-    }
-
-    set enabled(bool) {
-        this._enbaled = bool;
-        Config.set(this.configKey, bool);
-        this.update();
-        this.dispatchEvent(new Event('setion-change'));
-    }
-
-    get sectionTitle() {
-        return this.getAttribute("section-title") || "";
-    }
-
-    get sectionId() {
-        return this.getAttribute("section-title").toLocaleLowerCase().replace(" ", '-');
-    }
-
-    get configKey() {
-        return 'section-' + this.sectionId + '-enabled';
-    }
-
-    get optional() {
-        return this.hasAttribute("optional") || false;
-    }
-
-    render() {
-        const updateEnabled = enabled => {
-            this.enabled = enabled;
-        };
-
-        return html`
-            <div class="header">
-                <div class="title">${this.sectionTitle}</div>
-                ${!this.optional ? '' : html`
-                    <div class="switch">
-                        <input-switch ?checked="${this.enabled}" type="checkbox" @change="${e => updateEnabled(e.target.checked)}"></input-switch>
-                    </div>
-                `}
-            </div>
-            <slot class="content" ?enabled="${this.enabled}"></slot>
-        `;
-    }
-}
-
-customElements.define('obs-dock-tab-section', DockTabSection);
-
-// Streamlabs stuff
-
-let subs = Config.get('sub-counter') || 0;
-let donated = Config.get('donation-counter') || 0;
-
-Streamlabs$1.on('subscription', handleSub$1);
-Streamlabs$1.on('resub', handleSub$1);
-Streamlabs$1.on('donation', handleDonation$1);
-
-function handleDonation$1(e) {
-    const amount = +e.formatted_amount.replace(/[\€|\$]/g, '');
-    donated += amount;
-    Config.set('donation-counter', donated);
-
-    const history = Config.get('event-history');
-    history.unshift(e);
-    Config.set('event-history', history);
-}
-
-function handleSub$1(e) {
-    subs++;
-    Config.set('sub-counter', subs);
-    
-    const history = Config.get('event-history');
-    history.unshift(e);
-    Config.set('event-history', history);
-}
-
-if(!Config.get('donation-counter')) {
-    Config.set('donation-counter', donated);
-}
-
-if(!Config.get('sub-counter')) {
-    Config.set('sub-counter', subs);
-}
-
-if(!Config.get('event-history')) {
-    Config.set('event-history', []);
-}
-
-// end
-
-if(!Config.get('start-time')) {
-    Config.set('start-time', 60 * 60 * 12); // seconds
-}
-
-if(!Config.get('sub-add-time')) {
-    Config.set('sub-add-time', 60 * 5); // seconds
-}
-
-if(!Config.get('donation-add-time')) {
-    Config.set('donation-add-time', 60 * 1); // seconds
-}
-
-const bc = new BroadcastChannel('obs-tools-widget-com');
-
-class Timer extends DockTab {
-
-    static get styles() {
-        return css`
-            ${super.styles}
-            :host {
-                display: grid;
-                height: 100%;
-                grid-template-rows: auto auto auto auto 1fr auto;
-            }
-            input {
-                display: inline-block;
-                width: 40px;
-                text-align: center;
-            }
-            .timer-controls {
-                margin: 10px 0px;
-                display: grid;
-                grid-auto-flow: column;
-                justify-items: center;
-                justify-content: center;
-                grid-gap: 5px;
-            }
-            .timer-clock {
-                display: grid;
-                grid-auto-flow: row;
-                justify-items: center;
-                justify-content: center;
-                margin-top: 5px;
-            }
-            .timer {
-                font-size: 28px;
-            }
-            .sub-timer {
-                margin-top: 5px;
-                opacity: 0.75;
-            }
-            .material-icons.inline {
-                font-size: 18px;
-                vertical-align: middle;
-                margin-top: -4px;
-                margin-right: 2px;
-            }
-            select {
-                margin-left: 5px;
-            }
-            .history {
-                width: 100%;
-                overflow: auto;
-                height: 120px;
-                border: 1px solid rgb(54, 54, 54);
-                background: rgb(26, 26, 26);
-                grid-column: 1 / span 2;
-            }
-            .history-entry {
-                font-size: 12px;
-                padding: 7px 10px;
-                margin: 5px 5px 0px 5px;
-                background: #363636;
-                border-radius: 3px;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-            .inputs {
-                width: 100%;
-                display: grid;
-                grid-template-columns: auto auto;
-                grid-template-rows: auto 1fr;
-                grid-gap: 10px;
-            }
-            .inputs input {
-                background: transparent;
-                border: none;
-            }
-            .inputs label {
-                display: inline;
-            }
-            .timer-autoreset {
-                margin-top: 10px;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            }
-        `;
-    }
-
-    constructor() {
-        super();
-
-        this.time = 60 * 60 * 12;
-        this.elapsedTime = 0;
-        this.autoSceneSwitchEnabled = false;
-        this.subathonFeaturesEnabled = false;
-
-        if(Config.get('elapsed-time') != null) {
-            this.elapsedTime = Config.get('elapsed-time');
-        }
-        if(Config.get('timer') != null) {
-            this.time = Config.get('timer');
-        }
-
-        this.timerPlaying = false;
-
-        let lastTick = null;
-        const updateTimer = ms => {
-            if(ms && lastTick) {
-                const delta = ms - lastTick;
-                const deltaSecs = delta / 1000;
-        
-                if(this.time - deltaSecs > 0) {
-                    this.time -= deltaSecs;
-                    this.elapsedTime += deltaSecs;
-                } else {
-                    this.time = 0;
-                    this.timerPlaying = false;
-                    this.onTimerEnd();
-                }
-                this.update();
-            }
-            if(this.timerPlaying) {
-                setTimeout(() => {
-                    updateTimer(Date.now());
-                }, 1000 / 12);
-            }
-            lastTick = ms;
-        };
-        updateTimer();
-
-        this.pausePlayTimer = () => {
-            this.timerPlaying = !this.timerPlaying;
-
-            if(this.time === 0) {
-                this.timerPlaying = true;
-                this.resetTimer();
-            }
-    
-            if(this.timerPlaying === true) {
-                updateTimer();
-            }
-    
-            this.updateOverlayTimer();
-            this.update();
-        };
-
-        setInterval(() => {
-            Config.set('elapsed-time', this.elapsedTime);
-            Config.set('timer', this.time);
-        }, 2000);
-
-        this.updateOverlayTimer();
-
-        this.obsScenes = [];
-        OBS$1.onReady(() => {
-            OBS$1.getScenes().then(scenes => {
-                this.obsScenes = scenes;
-                this.update();
-            });
-        });
-
-        // subathon features
-        const handleDonation = (e) => {
-            if(this.subathonFeaturesEnabled) {
-                const amount = +e.formatted_amount.replace(/[\€|\$]/g, '');
-                const donoAddTime = Config.get('donation-add-time') * amount;
-                this.time += donoAddTime;
-                if(this.timerPlaying) {
-                    this.updateOverlayTimer();
-                }
-            }
-        };
-        
-        const handleSub = (e) => {
-            if(this.subathonFeaturesEnabled) {
-                const subAddTime = Config.get('sub-add-time');
-                this.time += subAddTime;
-                if(this.timerPlaying) {
-                    this.updateOverlayTimer();
-                }
-            }
-        };
-
-        Streamlabs$1.on('subscription', handleSub);
-        Streamlabs$1.on('resub', handleSub);
-        Streamlabs$1.on('donation', handleDonation);
-
-        Config.on('sub-counter', () => {
-            subs = Config.get('sub-counter');
-            this.update();
-        });
-        Config.on('dono-counter', () => {
-            donated = Config.get('donation-counter');
-            this.update();
-        });
-        Config.on('event-history', () => this.update());
-    }
-
-    removeHistoryEntry(entry) {
-        const history = Config.get('event-history');
-        history.splice(history.indexOf(entry), 1);
-        Config.set('event-history', history);
-    }
-
-    updateOverlayTimer() {
-        bc.postMessage({ 
-            subs: subs,
-            donated: donated,
-            type:'timer', 
-            time: this.time,
-            playstate: this.timerPlaying
-        });
-    }
-
-    resetTimer() {
-        if(confirm('Reset timer to start time?')) {
-            this.forceReset();
-        }
-    }
-
-    forceReset() {
-        const startTime = Config.get('start-time');
-        this.time = startTime;
-        this.elapsedTime = 0;
-        this.updateOverlayTimer();
-        this.update();
-
-        Config.set('sub-counter', 0);
-        Config.set('donation-counter', 0);
-    }
-
-    onTimerEnd() {
-        if(this.autoSceneSwitchEnabled) {
-            const selectEle = this.shadowRoot.querySelector('#autoSwitchSceneSelect');
-            const sceneToSwitchTo = selectEle.value;
-            if(sceneToSwitchTo && sceneToSwitchTo !== "none") {
-                OBS$1.setCurrentScene(sceneToSwitchTo);
-            }
-        }
-        if(this.shadowRoot.querySelector('#autoreset').checked) {
-            this.forceReset();
-            setTimeout(() => this.pausePlayTimer(), 1000);
-        }
-    }
-
-    pausePlayTimer() {}
-
-    addMinute() {
-        this.time += 60;
-        this.update();
-        this.updateOverlayTimer();
-    }
-
-    subtractMinute() {
-        this.time -= 60;
-        this.update();
-        this.updateOverlayTimer();
-    }
-
-    render() {
-        const startTime = Config.get('start-time');
-        const hours = Math.floor(startTime / 60 / 60);
-        const minutes = Math.floor(startTime / 60) % 60;
-        const seconds = Math.floor(startTime) % 60;
-
-        const elapsedHours = Math.round((this.elapsedTime + 0.5) / 60 / 60);
-        const elapsedMinutes = Math.round((this.elapsedTime + 0.5) / 60) % 60;
-        const elapsedSeconds = Math.round((this.elapsedTime + 0.5)) % 60;
-
-        const timerHours = Math.floor(this.time / 60 / 60);
-        const timerMinutes = Math.floor(this.time / 60) % 60;
-        const timerSeconds = Math.floor(this.time) % 60;
-
-        const subAddTime = Config.get('sub-add-time');
-        const subMinutes = Math.floor(subAddTime / 60) % 60;
-        const subSeconds = Math.floor(subAddTime) % 60;
-
-        const donoAddTime = Config.get('donation-add-time');
-        const donoMinutes = Math.floor(donoAddTime / 60) % 60;
-        const donoSeconds = Math.floor(donoAddTime) % 60;
-
-        const updateStartTime = () => {
-            const h = this.shadowRoot.querySelector('#startTimeH').value, 
-                  m = this.shadowRoot.querySelector('#startTimeM').value, 
-                  s = this.shadowRoot.querySelector('#startTimeS').value;
-
-            const time = (h * 60 * 60) + (m * 60) + (s);
-            Config.set('start-time', time);
-        };
-
-        const updateSubTime = () => {
-            const m = this.shadowRoot.querySelector('#subTimeM').value, 
-                  s = this.shadowRoot.querySelector('#subTimeS').value;
-
-            const time = (m * 60) + (s);
-            Config.set('sub-add-time', time);
-        };
-
-        const updateDonoTime = () => {
-            const m = this.shadowRoot.querySelector('#donoTimeM').value, 
-                  s = this.shadowRoot.querySelector('#donoTimeS').value;
-
-            const time = (m * 60) + (s);
-            Config.set('donation-add-time', time);
-        };
-
-        const history = Config.get('event-history');
-
-        return html`
-            <link href="./material-icons.css" rel="stylesheet">
-
-            <obs-dock-tab-section section-title="Timer">
-                <div class="timer-clock">
-                    <div class="timer">
-                        ${timerHours.toFixed(0).padStart(2, "0")}
-                        :
-                        ${timerMinutes.toFixed(0).padStart(2, "0")}
-                        :
-                        ${timerSeconds.toFixed(0).padStart(2, "0")}
-                    </div>
-                    <div class="sub-timer">
-                        <span class="material-icons inline">timer</span>
-                        ${elapsedHours.toFixed(0).padStart(2, "0")}
-                        :
-                        ${elapsedMinutes.toFixed(0).padStart(2, "0")}
-                        :
-                        ${elapsedSeconds.toFixed(0).padStart(2, "0")}
-                    </div>
-                </div>
-                <div class="timer-controls">
-                    <button class="icon-button" @click="${() => this.pausePlayTimer()}">
-                        <span class="material-icons">
-                            ${this.timerPlaying ? "pause" : "play_arrow"}
-                        </span>
-                    </button>
-                    <button @click="${() => this.resetTimer()}" class="secondary icon-button">
-                        <span class="material-icons">replay</span>
-                    </button>
-                    <button @click="${() => this.addMinute()}" class="secondary">+1 m</button>
-                    <button @click="${() => this.subtractMinute()}" class="secondary">-1 m</button>
-                </div> 
-            </obs-dock-tab-section>
-            
-            <obs-dock-tab-section section-title="Timer Settings">
-                <div class="timer-settings">
-                    <div class="row">
-                        <label>Start</label>
-                        <div>
-                            <gyro-fluid-input id="startTimeH" min="0" max="999" steps="1" @change="${e => updateStartTime()}" value="${hours}" suffix="h"></gyro-fluid-input>
-                            <gyro-fluid-input id="startTimeM" min="0" max="59" steps="1" @change="${e => updateStartTime()}" value="${minutes}" suffix="m"></gyro-fluid-input>
-                            <gyro-fluid-input id="startTimeS" min="0" max="59" steps="1" @change="${e => updateStartTime()}" value="${seconds}" suffix="s"></gyro-fluid-input>
-                        </div>
-                    </div>
-                </div>
-            </obs-dock-tab-section>
-
-            <obs-dock-tab-section optional section-title="Subathon Features"
-                @setion-change="${(e) => {this.subathonFeaturesEnabled = e.target.enabled;}}">
-
-                <label>Time added by events:</label>
-                <div class="row">
-                    <label>Sub</label>
-                    <div>
-                        <gyro-fluid-input id="subTimeM" min="0" max="60" steps="1" @change="${e => updateSubTime()}" value="${subMinutes}" suffix="m"></gyro-fluid-input>
-                        <gyro-fluid-input id="subTimeS" min="0" max="59" steps="1" @change="${e => updateSubTime()}" value="${subSeconds}" suffix="s"></gyro-fluid-input>
-                    </div>
-                </div>
-                <div class="row">
-                    <label>Donation / 1</label>
-                    <div>
-                        <gyro-fluid-input id="donoTimeM" min="0" max="60" steps="1" @change="${e => updateDonoTime()}" value="${donoMinutes}" suffix="m"></gyro-fluid-input>
-                        <gyro-fluid-input id="donoTimeS" min="0" max="59" steps="1" @change="${e => updateDonoTime()}" value="${donoSeconds}" suffix="s"></gyro-fluid-input>
-                    </div>
-                </div>
-                <br/>
-                <label>Counters:</label>
-                <div class="row">
-                    <div class="inputs">
-                        <div>
-                            <label>Subs</label>
-                            <input type="number" value="${subs}" disabled="true"/>
-                        </div>
-                        <div>
-                            <label>Donated</label>
-                            <input type="number" value="${donated}" disabled="true"/>
-                        </div>
-                        <div class="history">
-                            ${history.map(entry => {
-                                if(entry.type == "resub" || entry.type == "subscription") {
-                                    return html`
-                                        <div class="history-entry">
-                                            <div>${entry.name} subbed.</div>
-                                            <button @click="${e => this.removeHistoryEntry(entry)}">X</button>
-                                        </div>
-                                    `;
-                                }
-                                if(entry.type == "donation") {
-                                    return html`
-                                        <div class="history-entry">
-                                            <div>${entry.name} donated ${entry.formatted_amount}.</div>
-                                            <button @click="${e => this.removeHistoryEntry(entry)}">X</button>
-                                        </div>
-                                    `;
-                                }
-                            })}
-                        </div>
-                    </div>
-
-                </div>
-            </obs-dock-tab-section>
-            
-            <obs-dock-tab-section optional section-title="Timed scene switch"
-                @setion-change="${(e) => {this.autoSceneSwitchEnabled = e.target.enabled;}}">
-
-                <div class="row">
-                    <label>Scene</label>
-                    <select id="autoSwitchSceneSelect" ?disabled="${this.obsScenes.length == 0}">
-                        ${this.obsScenes.length ? this.obsScenes.map(({ name }) => {
-                            return html`<option value="${name}">${name}</option>`;
-                        }) : html`<option value="none">No Scenes Available</option>`}
-                    </select>
-                </div>
-            </obs-dock-tab-section>
-        `;
-    }
-}
-
-customElements.define('obs-tools-timer', Timer);
-
-const API_CLIENT_ID = "tnjjsvaj7qyuem2as13e4gjsxwftcd";
-const API_REDIRECT_URI = "http://localhost:5500/public/dock/authenticated.html";
-
-let api_credentials = null;
-
-function parseHash(str) {
-    const res = {};
-    str.substring(1).split("&").map(item => item.split("=")).forEach(item => {
-        res[item[0]] = unescape(item[1]);
-    });
-    return res;
-}
-
-function log$1(...strs) {
-    console.log('[TwitchAPI]', ...strs);
-}
-
-class Twitch {
-
-    static get userInfo() {
-        return api_credentials.userInfo;
-    }
-
-    static get isAuthenticated() {
-        return api_credentials !== null;
-    }
-
-    static async refreshAccessToken(refresh_token) {
-        const url = `https://id.twitch.tv/oauth2/token?grant_type=refresh_token&refresh_token=${refresh_token}&client_id=${API_CLIENT_ID}&client_secret=${config.TWITCH_CLIENT_SECRET}`;
-        return fetch(url, { method: 'POST' }).then(res => res.json());
-    }
-
-    static async revokeAccessToken(access_token) {
-        const url = `https://id.twitch.tv/oauth2/revoke?client_id=${API_CLIENT_ID}&token=${access_token}`;
-        return fetch(url, { method: 'POST' }).then(res => res.json());
-    }
-
-    static requestAccessToken(code) {
-        const url = `https://id.twitch.tv/oauth2/token` +
-            `?client_id=${API_CLIENT_ID}` +
-            `&client_secret=${config.TWITCH_CLIENT_SECRET}` +
-            `&code=${code}` +
-            `&grant_type=authorization_code` +
-            `&redirect_uri=${API_REDIRECT_URI}`;
-
-        return fetch(url, { method: 'POST' })
-            .then(res => res.json())
-            .then(json => {
-                if (json.status) {
-                    throw new Error(json.message);
-                }
-                return json;
-            }).catch(err => {
-                console.error('Error requesting twitch access token');
-            })
-    }
-
-    static async getUserInfo() {
-        const url = `https://id.twitch.tv/oauth2/userinfo`;
-
-        if(api_credentials && api_credentials.access_token) {
-            return fetch(url, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${api_credentials.access_token}`,
-                }
-            }).then(res => res.json());
-        }
-        return null;
-    }
-
-    static loadAuthentication() {
-        const stored = localStorage.getItem('twitch_auth');
-        if(stored) {
-            const creds = JSON.parse(stored);
-            api_credentials = creds;
-            return true;
-        }
-        return false;
-    }
-
-    static async authenticate() {
-        return new Promise((resolve, reject) => {
-            log$1('authorizing...');
-
-            const api_scopes = [
-                "openid",
-                "bits:read",
-                "channel:manage:broadcast",
-                "channel:read:hype_train",
-                "channel:read:polls",
-                "channel:read:predictions",
-                "channel:read:redemptions",
-                "channel:read:subscriptions",
-                "chat:read"
-            ];
-            const claims = {
-                "id_token": {
-                    "picture": null,
-                    "preferred_username": null
-                }
-            };
-            const url = `https://id.twitch.tv/oauth2/authorize?client_id=${API_CLIENT_ID}&redirect_uri=${API_REDIRECT_URI}&response_type=token+id_token&scope=${api_scopes.join(" ")}&claims=${JSON.stringify(claims)}`;
-
-            const authWin = window.open(url);
-
-            const int = setInterval(async () => {
-                console.log('auth loaded');
-                const params = parseHash(authWin.location.hash);
-                if(params.access_token) {
-                    api_credentials = params;
-
-                    const userInfo = await Twitch.getUserInfo();
-                    api_credentials.userInfo = userInfo;
-
-                    localStorage.setItem('twitch_auth', JSON.stringify(api_credentials));
-
-                    authWin.close();
-                    resolve(params);
-                    clearInterval(int);
-                }
-            }, 200);
-        })
-    }
-
-    static async fetch(endpoint, args, access_token) {
-        // form args object to url search string
-        const searchParams = Object.keys(args).map(key => `${key}=${args[key]}`);
-
-        // fetch endpoint
-        return fetch(`https://api.twitch.tv/helix/${endpoint}?${searchParams.join('&')}`, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${access_token}`,
-                'Client-ID': API_CLIENT_ID
-            }
-        }).then(async res => {
-            const json = await res.json();
-            if (json.data) {
-                json.data.pagination = json.pagination;
-            }
-            return json.data;
-        }).catch(err => {
-            throw err;
-        });
-    }
-
-    static fetchClips(options) {
-        return Twitch.fetch('clips', options, api_credentials.access_token);
-    }
-
-    static fetchVideos(options) {
-        return Twitch.fetch('videos', options, api_credentials.access_token);
-    }
-
-    static fetchStreams(options) {
-        return Twitch.fetch('streams', options, api_credentials.access_token);
-    }
-
-    static fetchUsers(options) {
-        return Twitch.fetch('users', options, api_credentials.access_token);
-    }
-
-    static async getUserByLogin(login) {
-        if (!api_credentials) {
-            throw new Error('Not authenticated')
-        }
-        const users = await Twitch.fetch('users', { login }, api_credentials.access_token);
-        return users[0];
-    }
-
-    static async getStreamByLogin(login) {
-        if (!api_credentials) {
-            throw new Error('Not authenticated')
-        }
-        const users = await Twitch.fetch('streams', { user_login: login }, api_credentials.access_token);
-        return users[0];
-    }
-
-    static async getUserFollowers(userName) {
-        const userInfo = await getUserByLogin(userName);
-
-        const user = userInfo.data[0];
-
-        async function getFollowerChunk(cursor) {
-            const opts = {
-                from_id: user.id,
-                first: 100,
-            };
-
-            if (cursor) {
-                opts.after = cursor;
-            }
-
-            return await Twitch.fetch('users/follows', opts, api_credentials.access_token);
-        }
-
-        const followersTotal = [];
-
-        async function getAllFollowers(cursor) {
-            const followers = await getFollowerChunk(cursor);
-
-            followersTotal.push(...followers.data);
-
-            if (followers.pagination.cursor) {
-                await getAllFollowers(followers.pagination.cursor);
-            }
-        }
-
-        await getAllFollowers();
-
-        log$1(`${user.display_name} is following (${followersTotal.length}):`);
-
-        for (let user of followersTotal) {
-            log$1(`${user.followed_at}, ${user.to_name}`);
-        }
-    }
-
-    static async getChannelFollowers(channel) {
-        const userInfo = await getUserByLogin(channel);
-
-        const user = userInfo.data[0];
-
-        async function getFollowerChunk(cursor) {
-            const opts = {
-                to_id: user.id,
-                first: 100
-            };
-
-            if (cursor) {
-                opts.after = cursor;
-            }
-
-            return await Twitch.fetch('users/follows', opts, api_credentials.access_token);
-        }
-
-        const followersTotal = [];
-
-        async function getAllFollowers(cursor) {
-            const followers = await getFollowerChunk(cursor);
-
-            log$1(`${followersTotal.length} / ${followers.total}`);
-
-            followersTotal.push(...followers.data);
-
-            if (followers.pagination.cursor) {
-                await getAllFollowers(followers.pagination.cursor);
-            }
-        }
-
-        await getAllFollowers();
-
-        return followersTotal;
-    }
-
-    static async getChannelViewerOverlap(channel1, channel2) {
-        log$1('Getting channel followers...');
-
-        const followers1 = await getChannelFollowers(channel1);
-        const followers2 = await getChannelFollowers(channel2);
-
-        const hashmap = {};
-        let overlap = 0;
-
-        for (let follower of followers1) {
-            hashmap[follower.from_id] = 0;
-        }
-        for (let follower of followers2) {
-            if (hashmap[follower.from_id] != null) {
-                overlap++;
-                hashmap[follower.from_id] = 1;
-            }
-            hashmap[follower.from_id] = 0;
-        }
-
-        log$1(`${overlap} of ${channel1}(${followers1.length}) [${(overlap / followers1.length * 100).toFixed(3)}%] are also in ${channel2}`);
-    }
-
-    static async getChannelAllFollowers(channel) {
-        log$1('Getting channel followers...');
-
-        const followers = await getChannelFollowers(channel);
-
-        for (let user of followers) {
-            log$1(`${user.followed_at}, ${user.from_name}`);
-        }
-    }
-
-}
-
-class Settings extends DockTab {
-
-    static get styles() {
-        return css`
-            ${super.styles}
-            :host {
-                position: relative;
-            }
-            input.full {
-                width: calc(100% - 80px);
-            }
-            .label {
-                display: inline-block;
-                width: 80px;
-                font-size: 14px;
-                opacity: 0.75;
-            }
-            .client-id {
-                font-size: 12px;
-                position: absolute;
-                bottom: 8px;
-                left: 50%;
-                transform: translate(-50%, 0);
-                opacity: 0.25;
-                user-select: all;
-                width: 240px;
-            }
-        `;  
-    }
-
-    constructor() {
-        super();
-        Twitch.loadAuthentication();
-    }
-
-    showToken(id, btn) {
-        const input = this.shadowRoot.querySelector('#' + id);
-        input.type = "text";
-        let timer = 5;
-        btn.innerHTML = timer;
-        btn.disabled = true;
-        const int = setInterval(() => {
-            timer--;
-            btn.innerHTML = timer;
-            if(timer == 0) {
-                btn.innerHTML = "show";
-                input.type = "password";
-                clearInterval(int);
-                btn.disabled = false;
-            }
-        }, 1000);
-    }
-
-    render() {
-        const obsWebSocketPort = Config.get('obs-websocket-port') || "localhost:4444";
-        const obsWebSocketPassword = Config.get('obs-websocket-password') || "password";
-
-        return html`
-            <link href="./material-icons.css" rel="stylesheet">
-
-            <obs-dock-tab-section section-title="Streamlabs Integration">
-                <label>Streamlabs Websocket Token</label>
-                <input value="${Config.get('streamlabs-websocket-token') || ""}" 
-                    id="streamlabsWebsocketToken"
-                    @change="${e => Config.set('streamlabs-websocket-token', e.target.value)}" 
-                    class="full"
-                    type="password" 
-                    placeholder="Websocket Token"/>
-                <button @click="${e => this.showToken("streamlabsWebsocketToken", e.target)}">show</button>
-            </obs-dock-tab-section>
-
-            <obs-dock-tab-section section-title="OBS WebSocket Integration">
-                <div style="margin: 5px 0 15px 0;">
-                    <label>
-                        Install obs-websocket plugin for automation features.
-                    </label>
-                </div>
-                <div class="row">
-                    <label>WebSocket URL</label>
-                    <input value="${obsWebSocketPort}" 
-                        @change="${e => {
-                            Config.set('obs-websocket-port', e.target.value);
-                        }}" 
-                        placeholder="Port"/>
-                </div>
-                <div class="row">
-                    <label>Password</label>
-                    <input value="${obsWebSocketPassword}" 
-                        type="password"
-                        @change="${e => {
-                            Config.set('obs-websocket-password', e.target.value);
-                        }}" 
-                        placeholder="Password"/>
-                </div>
-            
-            </obs-dock-tab-section>
-
-            <obs-dock-tab-section section-title="Advanced">
-                <button @click="${e => location.reload()}">
-                    Reload Tool
-                </button>
-                <button @click="${e => {
-                    Config.fullReset();
-                }}">
-                    Reset Tool
-                </button>
-            </obs-dock-tab-section>
-
-            <div class="client-id">
-                <span>${localStorage.getItem('unique-client-id')}</span>
-            </div>
-        `;
-    }
-}
-
-customElements.define('obs-tools-settings', Settings);
-
-const overlays = [
-    { name: "Timer Overlay", url: "/apps/overlays/public/timer.html?layer-name=Timer%20Overlay&layer-width=1920&layer-height=1080" },
-    { name: "Subathon Overlay", url: "/apps/overlays/public/subathon.html?layer-name=Subathon%20Overlay&layer-width=1920&layer-height=1080" },
-    { name: "Labels Overlay", url: "/apps/overlays/public/labels.html?layer-name=Labels%20Overlay&layer-width=1920&layer-height=1080" }
-];
-
-class Overlays {
-
-    static getOverlayList() {
-        return overlays;
-    }
-
-    static addOverlay(name, url) {
-        overlays.push({ name, url });
-    }
-
-    static removeOverlay(name) {
-        let i = 0;
-        for(let overlay of overlays) {
-            if(overlay.name == name) {
-                overlays.splice(i, 1);
-                break;
-            }
-            i++;
-        }
-    }
-
-}
-
-const tickrate = 1000 / 12;
-const lokalStatus = {
-    currentScene: ""
-};
-
-globalThis.lokalStatus = lokalStatus;
-
-const obs = new OBSWebSocket();
-const obsWebSocketPort = Config.get('obs-websocket-port') || "localhost:4444";
-obs.connect({ address: obsWebSocketPort });
-
-obs.on('ConnectionClosed', connectionClosed);
-obs.on('ConnectionOpened', connectionOpende);
-obs.on('AuthenticationSuccess', authSuccess);
-obs.on('AuthenticationFailure', authFailed);
-
-obs.on('SwitchScenes', data => {
-    lokalStatus.currentScene = data.sceneName;
-});
-
-function log(...args) {
-    console.log('[OBS]', ...args);
-}
-
-function authFailed() {
-    log('Connection auth failed');
-}
-
-function authSuccess() {
-    log('Connection auth success');
-}
-
-function connectionClosed() {
-    log('Connection closed');
-}
-let init$1 = false;
-
-async function connectionOpende() {
-    log('Connection opened');
-
-    await obs.send('GetCurrentScene').then(data => {
-        lokalStatus.currentScene = data.name;
-    });
-    await obs.send('GetSourceTypesList').then(data => {
-        lokalStatus.types = data.types;
-    });
-
-    const reqUpdate = () => {
-        // scenes
-        obs.send('GetSceneList').then(data => {
-            lokalStatus.scenes = data.scenes;
-            OBS.emit('scenes');
-        }),
-
-        obs.send('GetSourcesList').then(async data => {
-            for(let source of data.sources) {
-                const typesId = source.typeId;
-                let hasAudio = false;
-                let hasVideo = false;
-
-                for(let type of lokalStatus.types) {
-                    if(type.typeId == typesId) {
-                        hasAudio = type.caps.hasAudio;
-                        hasVideo = type.caps.hasVideo;
-                    }
-                }
-
-                const name = source.name;
-                const volume = await obs.send('GetVolume', {
-                    source: name,
-                }).then(data => data.volume);
-                const muted = await obs.send('GetMute', {
-                    source: name,
-                }).then(data => data.muted);
-                const monitorType = await obs.send('GetAudioMonitorType', {
-                    sourceName: name,
-                }).then(data => data.monitorType);
-
-                source.monitorType = monitorType;
-                source.volume = volume;
-                source.muted = muted;
-                source.hasAudio = hasAudio;
-                source.hasVideo = hasVideo;
-            }
-            lokalStatus.sources = data.sources;
-
-            OBS.emit('sources');
-            OBS.emit('audiomixer');
-
-            if(!init$1) {
-                init$1 = true;
-                OBS.emit('ready');
-            }
-        }),
-        
-        // status
-        Promise.all([
-            obs.send('ListOutputs').then(data => {
-                for(let output of data.outputs) {
-                    if(output.name == "VirtualOutput") {
-                        lokalStatus.output = output;
-                    }
-                }
-            }),
-            obs.send('GetStats').then(data => {
-                lokalStatus.stats = data.stats;
-            }),
-            obs.send('GetVideoInfo').then(data => {
-                lokalStatus.video = data;
-            }),
-            obs.send('GetStreamingStatus').then(data => {
-                lokalStatus.stream = data;
-            })
-        ]).finally(() => {
-            OBS.emit('status');
-        });
-
-        // transitions
-        Promise.all([
-            obs.send('GetTransitionList').then(data => {
-                lokalStatus.transitions = data.transitions;
-            }),
-            obs.send('GetCurrentTransition').then(data => {
-                lokalStatus.currentTransitions = data;
-            })
-        ]).finally(() => {
-            OBS.emit('transitions');
-        });
-    };
-
-    obs.on('StreamStatus', data => {
-        lokalStatus.streamStatus = data;
-        OBS.emit('status');
-    });
-
-    obs.on('SourceVolumeChanged', ({ sourceName, volume }) => {
-        for(let source of lokalStatus.sources) {
-            if(source.name == sourceName) {
-                source.volume = volume;
-            }
-        }
-    });
-
-    obs.on('SceneItemSelected', e => {
-        OBS.emit("selection", e);
-    });
-    obs.on('SceneItemDeselected', e => {
-        OBS.emit("selection", e);
-    });
-    
-    setInterval(reqUpdate, tickrate);
-    reqUpdate();
-}
-
-const listeners$1 = {};
-
-class OBS {
-
-    static getState() {
-        return lokalStatus;
-    }
-
-    static emit(event, data) {
-        listeners$1[event] = listeners$1[event] || [];
-        for(let callback of listeners$1[event]) {
-            callback(data);
-        }
-    }
-
-    static setCurrentScene(scaneName) {
-        return obs.send('SetCurrentScene', {
-            'scene-name': scaneName
-        });
-    }
-    
-    static setCurrentTransition(transitionName) {
-        return obs.send('SetCurrentTransition', {
-            'transition-name': transitionName
-        });
-    }
-    
-    static setTransitionDuration(ms) {
-        return obs.send('SetTransitionDuration', {
-            'duration': ms
-        });
-    }
-
-    static setTransition(scaneName) {
-        return obs.send('SetCurrentScene', {
-            'scene-name': scaneName
-        });
-    }
-
-    static setVolume(sourceName, volume) {
-        return obs.send('SetVolume', {
-            'source': sourceName,
-            'volume': volume,
-            'useDecibel': false,
-        });
-    }
-
-    static setMute(sourceName, muted) {
-        return obs.send('SetMute', {
-            'source': sourceName,
-            'mute': muted,
-        });
-    }
-
-    static setAudioMonitorType(sourceName, monitorType) {
-        return obs.send('SetAudioMonitorType', {
-            'sourceName': sourceName,
-            'monitorType': monitorType,
-        });
-    }
-
-    static getSourceSettings(source) {
-        return obs.send('GetSourceSettings', {
-            'sourceName': source.name,
-        }).then(res => res.sourceSettings);
-    }
-
-    static setSourceSettings(source, sourceSettings = {}) {
-        return obs.send('SetSourceSettings', {
-            'sourceName': source.name,
-            'sourceSettings': sourceSettings
-        }).then(res => res.sourceSettings);
-    }
-
-    static reorderSceneItems(sceneName, items = []) {
-        return obs.send('ReorderSceneItems', {
-            'sourceName': sceneName,
-            'items': items
-        });
-    }
-
-    static getSceneItemProperties(sceneItem) {
-        return obs.send('GetSceneItemProperties', {
-            'item': sceneItem.name,
-        }).then(res => res);
-    }
-
-    static setSceneItemProperties(sceneName, sceneItem, settings) {
-        return obs.send('SetSceneItemProperties', {
-            'scene-name': sceneName,
-            'item': sceneItem,
-            ...settings
-        }).then(res => res);
-    }
-
-    static on(event, callback) {
-        listeners$1[event] = listeners$1[event] || [];
-        const listenrIndex = listeners$1[event].push(callback);
-        const cancel = () => {
-            listeners$1[event].splice(listenrIndex, 1);
-        };
-        return cancel;
-    }
-
-}
-
-/*
- * Easing Functions - inspired from http://gizma.com/easing/
- * only considering the t value for the range [0, 1] => [0, 1]
- */
-const Easing = {
-    linear: (t) => t,
-    easeInQuad: (t) => t * t,
-    easeOutQuad: (t) => t * (2 - t),
-    easeInOutQuad: (t) => t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
-    easeInCubic: (t) => t * t * t,
-    easeOutCubic: (t) => (--t) * t * t + 1,
-    easeInOutCubic: (t) => t < .5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1,
-    // easeInQuart: (t) => t * t * t * t,
-    // easeOutQuart: (t) => 1 - (--t) * t * t * t,
-    // easeInOutQuart: (t) => t < .5 ? 8 * t * t * t * t : 1 - 8 * (--t) * t * t * t,
-    // easeInQuint: (t) => t * t * t * t * t,
-    // easeOutQuint: (t) => 1 + (--t) * t * t * t * t,
-    // easeInOutQuint: (t) => t < .5 ? 16 * t * t * t * t * t : 1 + 16 * (--t) * t * t * t * t
-};
-
-const lerp = (x, y, a) => x * (1 - a) + y * a;
-
-function interpolateState(a, state1, state2) {
-    return {
-        crop: {
-            bottom: lerp(state1.crop.bottom, state2.crop.bottom, a),
-            left: lerp(state1.crop.left, state2.crop.left, a),
-            right: lerp(state1.crop.right, state2.crop.right, a),
-            top: lerp(state1.crop.top, state2.crop.top, a)
-        },
-        position: {
-            alignment: 5,
-            x: lerp(state1.position.x, state2.position.x, a),
-            y: lerp(state1.position.y, state2.position.y, a)
-        },
-        rotation: lerp(state1.rotation, state2.rotation, a),
-        scale: {
-            x: lerp(state1.scale.y, state2.scale.y, a),
-            y: lerp(state1.scale.y, state2.scale.y, a)
-        },
-        width: lerp(state1.width, state2.width, a),
-        height: lerp(state1.height, state2.height, a),
-    }
-}
-
-async function transitionState(scene, source, fromState, toState, easingFunc, length) {
-    const oldState = fromState;
-    const newState = toState;
-
-    OBS.setSceneItemProperties(scene, source, oldState);
-
-    let lastTick = 0;
-    let t = 0;
-
-    const int = setInterval(() => {
-        const delta = Date.now() - lastTick;
-
-        if (lastTick && t < 1) {
-            t += (delta / 1000) / length;
-
-            const v = easingFunc(t);
-
-            const interpState = interpolateState(v, oldState, newState);
-            OBS.setSceneItemProperties(scene, source, interpState);
-        } else if(lastTick) {
-            clearInterval(int);
-        }
-
-        lastTick = Date.now();
-    }, 1000 / 60);
-}
-
-class Transitions {
-
-    static async getState(sourceName) {
-        return OBS.getSceneItemProperties({ name: sourceName });
-    }
-
-    static async transitionSource(scene, source, fromState, toState, easingFunc, len) {
-        transitionState(scene, source, fromState, toState, easingFunc, len);
-    }
-
-}
-
-const updateCallbacks = [];
-
-class PropertySender {
-
-    constructor() {
-        this.channel = new BroadcastChannel('obs-tool-com');
-        
-        this.selection = [];
-
-        OBS.on('selection', e => {
-            switch (e.updateType) {
-                case "SceneItemDeselected":
-                    let index = 0;
-                    for(let item of this.selection) {
-                        if(item.itemId == e.itemId) {
-                            this.selection.splice(index, 1);
-                            break;
-                        }
-                        index++;
-                    }
-                    this.update();
-                    break;
-                case "SceneItemSelected":
-                    this.selection.push({
-                        itemId: e.itemId,
-                        itemName: e.itemName,
-                    });
-                    break;
-            }
-
-            requestAnimationFrame(() => {
-                for(let item of this.selection) {
-                    item.name = item.itemName;
-                    this.requestPropertiesBySource(item);
-                }
-
-                this.update();
-            });
-        });
-
-        this.channel.onmessage = ({ data }) => {
-            if(data.type == "properties") {
-                this.handleProperties(data.data);
-            }
-        };
-    }
-
-    handleProperties(data) {
-        const props = data.properties;
-
-        for(let selected of this.selection) {
-            if(selected.source == data.source) {
-                selected.props = props;
-            }
-        }
-
-        this.update();
-    }
-
-    requestProperties(source) {
-        this.channel.postMessage({ type:'getProperties', data: { source } });
-    }
-
-    postProperty(propId, value) {
-        this.channel.postMessage({ type: "property.change", data: { property: propId, value } });
-    }
-
-    requestPropertiesBySource(source) {
-        OBS.getSourceSettings(source).then(settings => {
-            if(settings.url) {
-                this.requestProperties(settings.url);
-                source.source = settings.url;
-            }
-        });
-    }
-
-    update() {
-        for(let callback of updateCallbacks) {
-            callback();
-        }
-    }
-
-    onUpdate(callback) {
-        updateCallbacks.push(callback);
-    }
-
-}
-
 function componentToHex(c) {
     const hex = c.toString(16);
     return hex.length == 1 ? "0" + hex : hex;
@@ -4925,453 +2954,362 @@ class ColorPicker extends LitElement {
 
 customElements.define('color-picker', ColorPicker);
 
-const propSender = new PropertySender();
-
-
-class Overlay extends DockTab {
+class DockTab extends LitElement {
 
     static get styles() {
         return css`
-            ${super.styles}
             :host {
-                height: 100%;
+                display: block;
+                box-sizing: border-box;
+                overflow: auto;
+                user-select: none;
             }
-            .drag-and-button {
+            input, textarea, select {
+                user-select: all;
+                border: 1px solid #363636;
+                border-radius: 3px;
+                background: hsl(0, 0%, 10%);
+                outline: none;
                 color: #eee;
-                display: flex;
-                justify-content: flex-start;
-                align-items: center;
-                text-decoration: none;
-                padding: 8px 4px;
-                font-size: 12.5px;
-                cursor: grab;
-                border-radius: 4px;
+                padding: 5px 8px;
+                font-size: 13px;
             }
-            .drag-and-button:not(:last-child) {
-                border-bottom: 1px solid #1a1a1a;
+            [disabled] {
+                opacity: 0.75;
             }
-            .drag-and-button:hover {
+            button {
+                border: 1px solid rgb(64 64 64);
+                border-radius: 3px;
                 background: #363636;
+                outline: none;
+                color: #eee;
+                padding: 6px 8px;
+                cursor: pointer;
+                min-width: 40px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
             }
-            .drag-and-button:active {
+            button.secondary {
                 background: #272727;
-                cursor: grabbing;
+                color: #ccc;
+                letter-spacing: -1px;
             }
-            i.material-icons {
+            button:hover {
+                background: rgb(60 60 60);
+            }
+            button:active {
+                background: rgb(47 47 47);
+            }
+            button[disabled] {
+                cursor: default;
+                background: rgb(47 47 47);
+            }
+            button.icon-button {
+                height: 29px;
+                width: 29px;
+                min-width: auto;
+                vertical-align: bottom;
+            }
+            button .material-icons {
+                font-size: 18px;
+            }
+            label {
                 font-size: 14px;
-                margin: 0 8px 0 4px;
+                opacity: 0.75;
+                color: #eee;
+                margin: 0;
+                display: block;
             }
-            .container {
-                padding: 5px;
+
+            ::-webkit-scrollbar {
+                width: 8px;
+                margin: 0 4px;
+                margin-left: 2px;
             }
-            .overlay-section {
-                height: auto;
+            ::-webkit-scrollbar-button {
+                display: none;
             }
-            .properties {
-                
+            ::-webkit-scrollbar-track-piece  {
+                background: #1c1c1c;
             }
-            .placeholder {
-                text-align: center;
+            ::-webkit-scrollbar-thumb {
+                background: #333;
+                border-radius: 5px;
+                border: none;
+            }
+            ::-webkit-scrollbar-thumb:hover {
+                background: #444;
+            }
+            .section {
+                margin: 0px;
+                border-left: 1px solid rgb(41, 41, 41);
+                border-right: 1px solid rgb(41, 41, 41);
+                position: relative;
+            }
+            .section-content {
+                padding: 10px;
+                background: #1c1c1c;
+            }
+            .section[section-title]::before {
+                content: attr(section-title);
+                display: block;
                 width: 100%;
-                opacity: 0.5;
-                margin: 8px 0;
+                text-align: left;
+                font-size: 12px;
+                color: rgb(152 152 152);
+                font-weight: 400;
+                padding: 4px 7px 5px 7px;
+                box-sizing: border-box;
+                line-height: 18px;
             }
-            gyro-fluid-input {
-                width: 150px;
-            }
-            button.reset-property-btn {
-                overflow: visible;
-                line-height: 100%;
-                border: none;
-                padding: 0;
-                text-align: right;
-                width: 28px;
-                min-width: 0;
-                height: 28px;
-                background: transparent;
+            .row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                margin-bottom: 8px;
+                margin-top: 8px;
                 margin-left: 10px;
-                margin-right: -10px;
-                border-radius: 4px;
-                border: 1px solid transparent;
-            }
-            button.reset-property-btn:hover {
-                background: #313131;
-                border: 1px solid #3f3f3f;
-            }
-            button.reset-property-btn:active {
-                background: #1b1b1b;
-            }
-            .reset-property-btn i.material-icons {
-                font-size: 16px;
+                margin-right: 10px;
             }
         `;
+    }
+
+    get active() {
+        return this.hasAttribute('active');
+    }
+
+    get hidden() {
+        return this.hasAttribute('hidden');
+    }
+
+    set hidden(bool) {
+        if(bool) {
+            this.setAttribute('hidden', '');
+        } else {
+            this.removeAttribute('hidden');
+        }
     }
 
     constructor() {
         super();
-
-        this.selection = propSender.selection;
-
-        propSender.onUpdate(() => this.update());
-    }
-
-    resetProperty(propId, prop) {
-        propSender.postProperty(propId, prop.default);
-        prop.value = prop.default;
-
-        // have to update empty selection because it wouldnt update values on reset property :/
-        this.selection = [];
-        this.update();
-        requestAnimationFrame(() => {
-            this.selection = propSender.selection;
-            this.update();
-        });
-    }
-
-    renderProperty(propId, propObj) {
-        const id = propId;
-        const prop = propObj;
-        
-        switch(prop.type) {
-            case "boolean":
-                return html`
-                    <label>${prop.name}</label>
-                    <div>
-                        <input-switch ?checked="${prop.value}" @change="${e => {
-                            propSender.postProperty(id, e.target.checked ? 1 : 0);
-                        }}"></input-switch>
-                        <button class="reset-property-btn" @click="${e => this.resetProperty(id, prop)}">
-                            <i class="material-icons">restart_alt</i>
-                        </button>
-                    </div>
-                `;
-            case "number":
-                return html`
-                    <label>${prop.name}</label>
-                    <div>
-                        <gyro-fluid-input min="0" max="100" .value="${prop.value}" @input="${e => {
-                            propSender.postProperty(id, e.target.value);
-                        }}"></gyro-fluid-input>
-                        <button class="reset-property-btn" @click="${e => this.resetProperty(id, prop)}">
-                            <i class="material-icons">restart_alt</i>
-                        </button>
-                    </div>
-                `;
-            case "color":
-                return html`
-                    <label>${prop.name}</label>
-                    <button class="reset-property-btn" @click="${e => this.resetProperty(id, prop)}">
-                        <i class="material-icons">restart_alt</i>
-                    </button>
-                    <div>
-                        <color-picker .hex="${prop.value}" @input="${e => {
-                            propSender.postProperty(id, e.target.hex);
-                        }}"></color-picker>
-                    </div>
-                `;
-            default:
-                return html`
-                    <label>${prop.name}</label>
-                    <div>
-                        <input value="${prop.value}" @input="${e => {
-                            propSender.postProperty(id, e.target.value);
-                        }}"/>
-                        <button class="reset-property-btn" @click="${e => this.resetProperty(id, prop)}">
-                            <i class="material-icons">restart_alt</i>
-                        </button>
-                    </div>
-                `;
-        }
-    }
-
-    render() {
-        const overlays = Overlays.getOverlayList();
-
-        return html`
-            <link href="./material-icons.css" rel="stylesheet">
-            
-            <obs-dock-tab-section .enabled="${true}" optional section-title="Overlay Drag & Drop" class="overlay-section">
-                ${overlays.map(overlay => {
-                    return html`
-                        <a class="drag-and-button" @click="${e => e.preventDefault()}" href="${overlay.url}">
-                            <i class="material-icons">layers</i> 
-                            <span>${overlay.name}</span>
-                        </a>
-                    `;
-                })}
-            </obs-dock-tab-section>
-
-            <obs-dock-tab-section section-title="Overlay Properties">
-                <div class="properties">
-                    ${this.selection.map(item => {
-                        if(item.props) {
-                            return html`
-                                <div>${item.itemName}</div>
-                                ${Object.keys(item.props).map(key => html`
-                                    <div class="row">
-                                        ${this.renderProperty(key, item.props[key])}
-                                    </div>
-                                `)}
-                            `;
-                        } else {
-                            return html`
-                                <div>${item.itemName}</div>
-                                <div class="placeholder">No custom properties</div>
-                            `;
-                        }
-                    })}
-
-                    ${this.selection.length == 0 ? html`
-                        <div class="placeholder">Nothing Selected</div>
-                    ` : ""}
-                </div>
-            </obs-dock-tab-section>
-        `;
-    }
-}
-
-customElements.define('obs-tools-overlay', Overlay);
-
-function setStatus(str) {
-    const tabEle = document.querySelector('obs-1uckybot-tab');
-    const ele = tabEle.shadowRoot.querySelector('#connStatus');
-    ele.innerText = str;
-}
-
-let mediaServerWs;
-function disbleMediaServerControl() {
-    if(mediaServerWs) {
-        mediaServerWs.close();
-    }
-}
-function enableMediaServerControl() {
-    const host = Config.get('stream-server-url') || "ws://localhost:8000";
-
-    mediaServerWs = new WebSocket(host);
-
-    mediaServerWs.addEventListener('message', msg => {
-        const data = JSON.parse(msg.data);
-        let scene = null;
-        console.log(data);
-        switch(data.type) {
-            case "stream-connected":
-                scene = getSelectedRemoteScene();
-                break;
-            case "stream-disconnected":
-                scene = getSelectedStandbyScene();
-                break;
-        }
-        if(scene) {
-            OBS$1.setCurrentScene(scene);
-        }
-    });
-
-    mediaServerWs.addEventListener('open', msg => {
-        console.log("connected to media server websocket");
-        setStatus('connected');
-    });
-    mediaServerWs.addEventListener('close', msg => {
-        console.log("disconnected from media server websocket");
-        setStatus('disconnected');
-    });
-}
-
-let getSelectedRemoteScene = () => {
-    const ele = document.querySelector('obs-1uckybot-tab');
-    const select = ele.shadowRoot.querySelector('#remoteStreamScene');
-    return select.value;
-};
-let getSelectedStandbyScene = () => {
-    const ele = document.querySelector('obs-1uckybot-tab');
-    const select = ele.shadowRoot.querySelector('#standByScene');
-    return select.value;
-};
-
-function updateToken(token) {
-    if(token != null) {
-        Config.set('1uckybot-websocket-token', token);
-
-        // tts overlay entry
-        const ttsUrl = `https://1uckybot.luckydye.de/overlay/?token=${token}&voice=Marlene&layer-name=1uckybot%20TTS%20overlay&layer-width=1920&layer-height=1080`;
-        Overlays.addOverlay('TTS', ttsUrl);
-    }
-}
-
-updateToken(Config.get('1uckybot-websocket-token'));
-
-class Luckybot extends DockTab {
-
-    static get styles() {
-        return css`
-            ${super.styles}
-            iframe {
-                border: none;
-            }
-        `;
-    }
-
-    constructor() {
-        super();
-
-        this.obsScenes = [];
-        OBS$1.onReady(() => {
-            OBS$1.getScenes().then(scenes => {
-                this.obsScenes = scenes;
-                this.update();
-            });
-        });
     }
 
     connectedCallback() {
         super.connectedCallback();
-        
-        if(Config.get("section-remote-stream controls-enabled")) {
-            enableMediaServerControl(); 
-        }
-    }
-
-    showToken(id, btn) {
-        const input = this.shadowRoot.querySelector('#' + id);
-        input.type = "text";
-        let timer = 5;
-        btn.innerHTML = timer;
-        btn.disabled = true;
-        const int = setInterval(() => {
-            timer--;
-            btn.innerHTML = timer;
-            if(timer == 0) {
-                btn.innerHTML = "show";
-                input.type = "password";
-                clearInterval(int);
-                btn.disabled = false;
-            }
-        }, 1000);
     }
 
     render() {
-        const mediaServerUrl = Config.get('stream-server-url') || "ws://localhost:8000";
-
         return html`
-            <link href="./material-icons.css" rel="stylesheet">
-            
-            <obs-dock-tab-section section-title="Token">
-                <label>1uckybot Access Token</label>
-                <input value="${Config.get('1uckybot-websocket-token') || ""}" 
-                    id="luckybotWebsocketToken"
-                    @change="${e => updateToken(e.target.value)}" 
-                    class="full"
-                    type="password" 
-                    placeholder="1uckybot Token"/>
-                <button @click="${e => this.showToken("luckybotWebsocketToken", e.target)}">show</button>
-            </obs-dock-tab-section>
-
-            <obs-dock-tab-section optional section-title="Remote Stream Controls" @setion-change="${e => {
-                if(e.target.enabled) {
-                    enableMediaServerControl();
-                } else {
-                    disbleMediaServerControl();
-                }
-            }}">
-                <div class="row">
-                    <label>WebSocket URL</label>
-                    <input value="${mediaServerUrl}" 
-                        @change="${e => {
-                            Config.set('stream-server-url', e.target.value);
-                        }}" 
-                        placeholder="IP:Port"/>
-                </div>
-
-                <div class="row">
-                    <button @click="${() => {
-                        setStatus('reconnecting...');
-                        disbleMediaServerControl();
-                        setTimeout(() => {
-                            enableMediaServerControl();
-                        }, 2000);
-                    }}">Reconnect</button>
-
-                    <span id="connStatus">evaluating...</span>
-                </div>
-
-                <br/>
-                <div class="row">
-                    <label>Remote Scene</label>
-                    <select id="remoteStreamScene" ?disabled="${this.obsScenes.length == 0}">
-                        ${this.obsScenes.length ? this.obsScenes.map(({ name }) => {
-                            return html`<option value="${name}">${name}</option>`;
-                        }) : html`<option value="none">No Scenes Available</option>`}
-                    </select>
-                </div>
-                <div class="row">
-                    <label>Standby Scene</label>
-                    <select id="standByScene" ?disabled="${this.obsScenes.length == 0}">
-                        ${this.obsScenes.length ? this.obsScenes.map(({ name }) => {
-                            return html`<option value="${name}">${name}</option>`;
-                        }) : html`<option value="none">No Scenes Available</option>`}
-                    </select>
-                </div>
-            </obs-dock-tab-section>
-
-            <obs-dock-tab-section section-title="TTS">
-                <iframe src="https://1uckybot.luckydye.de/overlay/control-panel.html" />
-            </obs-dock-tab-section>
+            <div>obs-dock-tab</div>
         `;
     }
 }
 
-customElements.define('obs-1uckybot-tab', Luckybot);
+customElements.define('obs-dock-tab', DockTab);
 
-let presets = Config.get('layout-presets') || [];
+class DropdownButton extends LitElement {
 
-class LayoutPresets {
-
-    static getPresets() {
-        return presets;
+    static get properties() {
+        return {
+            value: {},
+        };
     }
 
-    static async playPreset(preset, easing, length) {
-        const easingFunc = Easing[easing];
+	static get styles() {
+		return css`
+			:host {
+				display: block;
+				position: relative;
+				outline: none;
+				color: white;
+				font-family: sans-serif;
+				font-size: 12px;
+				text-transform: capitalize;
+				min-width: 120px;
+				box-sizing: border-box;
+			}
 
-        for(let source of preset.slice(1)) {
-            Transitions.getState(source.name).then(state => {
-                Transitions.transitionSource(state.currentScene, source.name, state, source, easingFunc, length);
-            }).catch(err => {
-                console.log('Error transitioning source, ', err);
-            });
-        }
-    }
+			:host(:focus) {
+				background: rgba(52, 52, 52, 0.75);
+			}
 
-    static async getSceneSourcesStates() {
-        const state = OBS.getState();
-        const currentScene = state.currentScene;
-        const scene = state.scenes.find(s => s.name == currentScene);
-        const sources = scene.sources;
-        const transforms = sources.map(({ name }) => {
-            return Transitions.getState(name).then(source => {
-                source.scene = scene.name;
-                return source;
-            });
-        });
-        return Promise.all(transforms);
-    }
-    
-    static async saveNewPreset() {
-        const sceneTransforms = await this.getSceneSourcesStates();
-        sceneTransforms.unshift("Layout Preset " + (presets.length + 1));
-        presets.push(sceneTransforms);
-        this.savePresets();
-    }
-    
-    static savePresets() {
-        Config.set('layout-presets', presets);
-    }
-    
-    static deletePreset(index) {
-        presets.splice(index, 1);
-        this.savePresets();
-    }
+			:host {
+				width: auto;
+				line-height: 15px;
+				cursor: pointer;
+				padding: 6px 12px;
+				border-radius: 4px;
+				box-sizing: content-box;
+				background: rgba(15, 15, 15, 0.5);
+				border: 1px solid #373737;
+			}
+
+			:host(:hover) {
+				background: rgba(52, 52, 52, 0.75);
+			}
+
+			:host([active]) {
+				z-index: 1000;
+			}
+
+			:host([active]) .options {
+				display: block;
+				animation: show .06s ease-out;
+			}
+
+			.options {
+				display: none;
+				position: absolute;
+				top: 100%;
+				margin-top: 2px;
+				right: 0;
+				background: rgba(25, 25, 25, 1);
+				border-radius: 4px;
+				overflow: hidden;
+				min-width: 100%;
+				width: max-content;
+				animation: hide .06s ease-out both;
+			}
+
+			.options span {
+				padding: 5px 8px;
+				display: block;
+				cursor: pointer;
+			}
+
+			.options span:hover {
+				background: rgba(100, 100, 100, 0.75);
+			}
+
+			.options span:active {
+				filter: brightness(0.9);
+			}
+
+			.value {
+				max-width: 100px;
+				white-space: nowrap;
+				text-overflow: ellipsis;
+				overflow: hidden;
+			}
+
+			.value::after {
+				content: url("data:image/svg+xml,%3C!-- Generator: Adobe Illustrator 22.0.1, SVG Export Plug-In --%3E%3Csvg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' xmlns:a='http://ns.adobe.com/AdobeSVGViewerExtensions/3.0/' x='0px' y='0px' width='7px' height='5.8px' viewBox='0 0 7 5.8' style='enable-background:new 0 0 7 5.8;' xml:space='preserve'%3E%3Cstyle type='text/css'%3E .st0%7Bfill:%23FFFFFF;%7D%0A%3C/style%3E%3Cdefs%3E%3C/defs%3E%3Cpolygon class='st0' points='0,0 3.5,5.8 7,0 '/%3E%3C/svg%3E%0A");
+				position: absolute;
+				right: 10px;
+				top: 50%;
+				transform: translateY(-55%);
+			}
+
+			:host([active]) .value::after {
+				transform: translateY(-50%) rotate(180deg);
+			}
+
+			@keyframes show {
+				from {
+					clip-path: polygon(100% 0, 0 0, 0 0, 100% 0);
+				}
+				to {
+					clip-path: polygon(100% 0, 0 0, 0 100%, 100% 100%);
+				}
+			}
+			@keyframes hide {
+				from {
+					clip-path: polygon(100% 0, 0 0, 0 100%, 100% 100%);
+				}
+				to {
+					clip-path: polygon(100% 0, 0 0, 0 0, 100% 0);
+				}
+			}
+		`;
+	}
+	
+	render() {
+		const options = this.props.options || [];
+		const onSelect = this.props.onSelect;
+		const value = this.props.value != null ? (this.props.value.name || "none") : "none";
+
+		return html`
+			<div class="value">
+				${value}
+			</div>
+			<div class="options">
+				${options.map(opt => {
+					return html`<span @click=${() => onSelect(opt)}>${opt.name}</span>`;
+				})}
+			</div>
+		`;
+	}
+
+	get value() {
+		return this.props.value;
+	}
+
+	set value(val) {
+		this.props.value = val;
+
+		for(let option of this.options) {
+			if(option.value == val) {
+				this.props.value = option;
+			}
+		}
+
+		this.update();
+	}
+
+	get options() {
+		return this.props.options || [];
+	}
+
+	set options(arr) {
+		this.props.options = arr;
+		this.props.value = this.props.value ? this.props.value : arr[0] ? arr[0] : { name: "none" };
+		this.dispatchEvent(new Event('change'));
+		this.update();
+		this.blur();
+	}
+
+	constructor(props = {}) {
+		super();
+
+        this.props = props;
+
+		this.props.onSelect = opt => {
+			this.value = opt;
+			this.dispatchEvent(new Event('change'));
+			this.update();
+			this.blur();
+		};
+	}
+
+	connectedCallback() {
+		super.connectedCallback();
+		this.tabIndex = 0;
+
+		this.addEventListener('focus', e => {
+			this.setAttribute('active', '');
+		});
+
+		this.addEventListener('blur', e => {
+			this.removeAttribute('active');
+		});
+
+		if(this.options && this.options.length < 1) {
+			const childOptions = [];
+			for(let child of this.children) {
+				childOptions.push({
+					name: child.getAttribute('name'),
+					value: child.getAttribute('value'),
+				});
+			}
+			this.options = childOptions;
+		}
+	}
 
 }
+
+customElements.define("dropdown-button", DropdownButton);
 
 function map(value, in_min, in_max, out_min, out_max) {
 	return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
@@ -5766,207 +3704,2273 @@ class InputChangeEvent extends Event {
 
 customElements.define("gyro-fluid-input", FluidInput);
 
-class DropdownButton extends LitElement {
+class GyroInput extends LitElement {
+
+    static get styles() {
+        return css`
+            :host {
+                display: inline-block;
+                width: 140px;
+                height: 28px;
+                border-radius: 3px;
+                overflow: hidden;
+                box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.15);
+            }
+            :host(:hover) input {
+                background: #2E2E2E;
+            }
+            input {
+                width: 100%;
+                height: 100%;
+                border: none;
+                margin: 0;
+                outline: none;
+                padding: 0;
+                background: var(--gyro-pallate-btn-bg);
+                color: #fff;
+                padding: 0 10px;
+                box-sizing: border-box;
+            }
+            input:focus {
+                background: var(--gyro-pallate-panel-bg);
+            }
+        `;
+    }
+
+    onInputChange() {
+        this.dispatchEvent(new Event('change'));
+    }
+
+    onInputInput() {
+        this.dispatchEvent(new Event('input'));
+    }
+
+    get value() {
+        return this.input.value;
+    }
+
+    constructor() {
+        super();
+
+        this.input = document.createElement('input');
+        this.input.onchange = e => this.onInputChange(e);
+        this.input.oninput = e => this.onInputInput(e);
+    }
+
+    render() {
+        return html`
+            ${this.input}
+		`;
+    }
 
     static get properties() {
         return {
             value: {},
+            placeholder: {},
         };
     }
 
-	static get styles() {
-		return css`
-			:host {
-				display: block;
-				position: relative;
-				outline: none;
-				color: white;
-				font-family: sans-serif;
-				font-size: 12px;
-				text-transform: capitalize;
-				min-width: 120px;
-				box-sizing: border-box;
-			}
+    get value() { return this.input.value; }
+    set value(val) { this.input.value = val; }
 
-			:host(:focus) {
-				background: rgba(52, 52, 52, 0.75);
-			}
-
-			:host {
-				width: auto;
-				line-height: 15px;
-				cursor: pointer;
-				padding: 6px 12px;
-				border-radius: 4px;
-				box-sizing: content-box;
-				background: rgba(15, 15, 15, 0.5);
-				border: 1px solid #373737;
-			}
-
-			:host(:hover) {
-				background: rgba(52, 52, 52, 0.75);
-			}
-
-			:host([active]) {
-				z-index: 1000;
-			}
-
-			:host([active]) .options {
-				display: block;
-				animation: show .06s ease-out;
-			}
-
-			.options {
-				display: none;
-				position: absolute;
-				top: 100%;
-				margin-top: 2px;
-				right: 0;
-				background: rgba(25, 25, 25, 1);
-				border-radius: 4px;
-				overflow: hidden;
-				min-width: 100%;
-				width: max-content;
-				animation: hide .06s ease-out both;
-			}
-
-			.options span {
-				padding: 5px 8px;
-				display: block;
-				cursor: pointer;
-			}
-
-			.options span:hover {
-				background: rgba(100, 100, 100, 0.75);
-			}
-
-			.options span:active {
-				filter: brightness(0.9);
-			}
-
-			.value {
-				max-width: 100px;
-				white-space: nowrap;
-				text-overflow: ellipsis;
-				overflow: hidden;
-			}
-
-			.value::after {
-				content: url("data:image/svg+xml,%3C!-- Generator: Adobe Illustrator 22.0.1, SVG Export Plug-In --%3E%3Csvg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' xmlns:a='http://ns.adobe.com/AdobeSVGViewerExtensions/3.0/' x='0px' y='0px' width='7px' height='5.8px' viewBox='0 0 7 5.8' style='enable-background:new 0 0 7 5.8;' xml:space='preserve'%3E%3Cstyle type='text/css'%3E .st0%7Bfill:%23FFFFFF;%7D%0A%3C/style%3E%3Cdefs%3E%3C/defs%3E%3Cpolygon class='st0' points='0,0 3.5,5.8 7,0 '/%3E%3C/svg%3E%0A");
-				position: absolute;
-				right: 10px;
-				top: 50%;
-				transform: translateY(-55%);
-			}
-
-			:host([active]) .value::after {
-				transform: translateY(-50%) rotate(180deg);
-			}
-
-			@keyframes show {
-				from {
-					clip-path: polygon(100% 0, 0 0, 0 0, 100% 0);
-				}
-				to {
-					clip-path: polygon(100% 0, 0 0, 0 100%, 100% 100%);
-				}
-			}
-			@keyframes hide {
-				from {
-					clip-path: polygon(100% 0, 0 0, 0 100%, 100% 100%);
-				}
-				to {
-					clip-path: polygon(100% 0, 0 0, 0 0, 100% 0);
-				}
-			}
-		`;
-	}
-	
-	render() {
-		const options = this.props.options || [];
-		const onSelect = this.props.onSelect;
-		const value = this.props.value != null ? (this.props.value.name || "none") : "none";
-
-		return html`
-			<div class="value">
-				${value}
-			</div>
-			<div class="options">
-				${options.map(opt => {
-					return html`<span @click=${() => onSelect(opt)}>${opt.name}</span>`;
-				})}
-			</div>
-		`;
-	}
-
-	get value() {
-		return this.props.value;
-	}
-
-	set value(val) {
-		this.props.value = val;
-
-		for(let option of this.options) {
-			if(option.value == val) {
-				this.props.value = option;
-			}
-		}
-
-		this.update();
-	}
-
-	get options() {
-		return this.props.options || [];
-	}
-
-	set options(arr) {
-		this.props.options = arr;
-		this.props.value = this.props.value ? this.props.value : arr[0] ? arr[0] : { name: "none" };
-		this.dispatchEvent(new Event('change'));
-		this.update();
-		this.blur();
-	}
-
-	constructor(props = {}) {
-		super();
-
-        this.props = props;
-
-		this.props.onSelect = opt => {
-			this.value = opt;
-			this.dispatchEvent(new Event('change'));
-			this.update();
-			this.blur();
-		};
-	}
-
-	connectedCallback() {
-		super.connectedCallback();
-		this.tabIndex = 0;
-
-		this.addEventListener('focus', e => {
-			this.setAttribute('active', '');
-		});
-
-		this.addEventListener('blur', e => {
-			this.removeAttribute('active');
-		});
-
-		if(this.options && this.options.length < 1) {
-			const childOptions = [];
-			for(let child of this.children) {
-				childOptions.push({
-					name: child.getAttribute('name'),
-					value: child.getAttribute('value'),
-				});
-			}
-			this.options = childOptions;
-		}
-	}
+    get placeholder() { return this.input.placeholder; }
+    set placeholder(val) { this.input.placeholder = val; }
 
 }
 
-customElements.define("dropdown-button", DropdownButton);
+customElements.define('gyro-input', GyroInput);
+
+const eventTarget = new EventTarget();
+
+class ConfigChangeEvent extends Event {
+
+    constructor(key, oldValue, newValue) {
+        super('change');
+        this.key = key;
+        this.newValue = newValue;
+        this.oldValue = oldValue;
+    }
+
+}
+
+const store = JSON.parse(localStorage.getItem('obs-tools-store') || "{}");
+
+class Config {
+
+    static on(key, callback) {
+        eventTarget.addEventListener('change', e => {
+            if(e.key == key) {
+                callback(e);
+            }
+        });
+    }
+
+    static set(key, value) {
+        const oldValue = this.get(key);
+        store[key] = value;
+        const event = new ConfigChangeEvent(key, oldValue, value);
+        eventTarget.dispatchEvent(event);
+        localStorage.setItem('obs-tools-store', JSON.stringify(store));
+    }
+
+    static get(key) {
+        return store[key];
+    }
+
+    static serialize() {
+        return localStorage.getItem('obs-tools-store');
+    }
+
+    static fullReset() {
+        localStorage.setItem('obs-tools-store', "{}");
+        location.reload();
+    }
+
+    static copySaveToClipboard() {
+        navigator.clipboard.writeText(this.serialize());
+    }
+
+}
+
+class Switch extends LitElement {
+
+    static get styles() {
+        return css`
+            :host {
+                --button-size: 14px;
+                --global-font-color: #eee;
+                --accent-color: #2f77b1;
+                
+                border-radius: 100px;
+                overflow: hidden;
+                background: black;
+                cursor: pointer;
+                width: calc(var(--button-size) * 2);
+                display: inline-block;
+            }
+            :host([checked]) .switch-handle {
+                transform: translateX(100%);
+            }
+            .switch {
+                z-index: 1;
+                position: relative;
+            }
+            .switch:active .switch-handle-thumb {
+                filter: brightness(0.85);
+            }
+            .switch-handle {
+                height: var(--button-size);
+                width: var(--button-size);
+                position: relative;
+                transition: transform .15s cubic-bezier(0.38, 0, 0.08, 1.01);
+            }
+            .switch-handle::after,
+            .switch-handle::before {
+                content: "";
+                top: 0;
+                height: 100%;
+                position: absolute;
+                width: calc(var(--button-size) * 2);
+            }
+            .switch-handle::after {
+                left: 50%;
+                background: #444;
+            }
+            .switch-handle::before {
+                right: 50%;    
+                background: var(--accent-color);
+            }
+            .switch-handle-thumb {
+                width: 100%;
+                height: 100%;
+                border-radius: 50%;
+                position: relative;
+                z-index: 1000;
+                background: var(--global-font-color);
+            }
+        `;
+    }
+
+    static get properties() {
+        return {
+            checked: {}
+        };
+    }
+
+    get checked() {
+        return this.hasAttribute('checked') && this.getAttribute('checked') != "false";
+    }
+
+    set checked(value) {
+        if (value === false) {
+            this.removeAttribute('checked');
+        } else if (value === true) {
+            this.setAttribute('checked', '');
+        }
+    }
+
+    render() {
+        const clickHandler = () => {
+            this.checked = !this.checked;
+            this.dispatchEvent(new Event('change'));
+        };
+
+        return html`
+            <div class="switch" @click=${clickHandler}>
+                <div class="switch-handle">
+                    <div class="switch-handle-thumb"></div>
+                </div>
+            </div>
+        `;
+    }
+}
+
+customElements.define('input-switch', Switch);
+
+class DockTabSection extends LitElement {
+
+    static get styles() {
+        return css`
+            :host {
+                margin: 0px;
+                position: relative;
+                display: block;
+                --content-padding: 8px 8px 12px 8px;
+            }
+            .title {
+                line-height: 100%;
+            }
+            .header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                width: 100%;
+                text-align: left;
+                font-size: 12px;
+                color: rgb(152 152 152);
+                font-weight: 400;
+                padding: 5px 7px 5px 7px;
+                box-sizing: border-box;
+                margin-bottom: 1px;
+            }
+            .switch input {
+                margin: 0;
+            }
+            .content {
+                display: block;
+                padding: var(--content-padding);
+            }
+            .content:not([enabled]) {
+                display: none;
+            }
+        `;
+    }
+
+    constructor() {
+        super();
+
+        
+        this._enbaled = this.optional ? (Config.get(this.configKey) || false) : true;
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        
+        this.dispatchEvent(new Event('change'));
+    }
+
+    get enabled() {
+        return this._enbaled;
+    }
+
+    set enabled(bool) {
+        this._enbaled = bool;
+        Config.set(this.configKey, bool);
+        this.update();
+        this.dispatchEvent(new Event('setion-change'));
+    }
+
+    get sectionTitle() {
+        return this.getAttribute("section-title") || "";
+    }
+
+    get sectionId() {
+        return this.getAttribute("section-title").toLocaleLowerCase().replace(" ", '-');
+    }
+
+    get configKey() {
+        return 'section-' + this.sectionId + '-enabled';
+    }
+
+    get optional() {
+        return this.hasAttribute("optional") || false;
+    }
+
+    render() {
+        const updateEnabled = enabled => {
+            this.enabled = enabled;
+        };
+
+        return html`
+            <div class="header">
+                <div class="title">${this.sectionTitle}</div>
+                ${!this.optional ? '' : html`
+                    <div class="switch">
+                        <input-switch ?checked="${this.enabled}" type="checkbox" @change="${e => updateEnabled(e.target.checked)}"></input-switch>
+                    </div>
+                `}
+            </div>
+            <slot class="content" ?enabled="${this.enabled}"></slot>
+        `;
+    }
+}
+
+customElements.define('obs-dock-tab-section', DockTabSection);
+
+const tickrate = 1000 / 12;
+const lokalStatus = {
+    currentScene: ""
+};
+
+globalThis.lokalStatus = lokalStatus;
+
+const obs = new OBSWebSocket();
+const obsWebSocketPort = Config.get('obs-websocket-port') || "localhost:4444";
+obs.connect({ address: obsWebSocketPort });
+
+obs.on('ConnectionClosed', connectionClosed);
+obs.on('ConnectionOpened', connectionOpende);
+obs.on('AuthenticationSuccess', authSuccess);
+obs.on('AuthenticationFailure', authFailed);
+
+obs.on('SwitchScenes', data => {
+    lokalStatus.currentScene = data.sceneName;
+});
+
+function log$1(...args) {
+    console.log('[OBS]', ...args);
+}
+
+function authFailed() {
+    log$1('Connection auth failed');
+}
+
+function authSuccess() {
+    log$1('Connection auth success');
+}
+
+function connectionClosed() {
+    log$1('Connection closed');
+}
+let init$1 = false;
+
+async function connectionOpende() {
+    log$1('Connection opened');
+
+    await obs.send('GetCurrentScene').then(data => {
+        lokalStatus.currentScene = data.name;
+    });
+    await obs.send('GetSourceTypesList').then(data => {
+        lokalStatus.types = data.types;
+    });
+
+    const reqUpdate = () => {
+        // scenes
+        obs.send('GetSceneList').then(data => {
+            lokalStatus.scenes = data.scenes;
+            OBS.emit('scenes');
+        }),
+
+        obs.send('GetSourcesList').then(async data => {
+            for(let source of data.sources) {
+                const typesId = source.typeId;
+                let hasAudio = false;
+                let hasVideo = false;
+
+                for(let type of lokalStatus.types) {
+                    if(type.typeId == typesId) {
+                        hasAudio = type.caps.hasAudio;
+                        hasVideo = type.caps.hasVideo;
+                    }
+                }
+
+                const name = source.name;
+                const volume = await obs.send('GetVolume', {
+                    source: name,
+                }).then(data => data.volume);
+                const muted = await obs.send('GetMute', {
+                    source: name,
+                }).then(data => data.muted);
+                const monitorType = await obs.send('GetAudioMonitorType', {
+                    sourceName: name,
+                }).then(data => data.monitorType);
+
+                source.monitorType = monitorType;
+                source.volume = volume;
+                source.muted = muted;
+                source.hasAudio = hasAudio;
+                source.hasVideo = hasVideo;
+            }
+            lokalStatus.sources = data.sources;
+
+            OBS.emit('sources');
+            OBS.emit('audiomixer');
+
+            if(!init$1) {
+                init$1 = true;
+                OBS.emit('ready');
+            }
+        }),
+        
+        // status
+        Promise.all([
+            obs.send('ListOutputs').then(data => {
+                for(let output of data.outputs) {
+                    if(output.name == "VirtualOutput") {
+                        lokalStatus.output = output;
+                    }
+                }
+            }),
+            obs.send('GetStats').then(data => {
+                lokalStatus.stats = data.stats;
+            }),
+            obs.send('GetVideoInfo').then(data => {
+                lokalStatus.video = data;
+            }),
+            obs.send('GetStreamingStatus').then(data => {
+                lokalStatus.stream = data;
+            })
+        ]).finally(() => {
+            OBS.emit('status');
+        });
+
+        // transitions
+        Promise.all([
+            obs.send('GetTransitionList').then(data => {
+                lokalStatus.transitions = data.transitions;
+            }),
+            obs.send('GetCurrentTransition').then(data => {
+                lokalStatus.currentTransitions = data;
+            })
+        ]).finally(() => {
+            OBS.emit('transitions');
+        });
+    };
+
+    obs.on('StreamStatus', data => {
+        lokalStatus.streamStatus = data;
+        OBS.emit('status');
+    });
+
+    obs.on('SourceVolumeChanged', ({ sourceName, volume }) => {
+        for(let source of lokalStatus.sources) {
+            if(source.name == sourceName) {
+                source.volume = volume;
+            }
+        }
+    });
+
+    obs.on('SceneItemSelected', e => {
+        OBS.emit("selection", e);
+    });
+    obs.on('SceneItemDeselected', e => {
+        OBS.emit("selection", e);
+    });
+    
+    setInterval(reqUpdate, tickrate);
+    reqUpdate();
+}
+
+const listeners$1 = {};
+
+class OBS {
+
+    static getState() {
+        return lokalStatus;
+    }
+
+    static emit(event, data) {
+        listeners$1[event] = listeners$1[event] || [];
+        for(let callback of listeners$1[event]) {
+            callback(data);
+        }
+    }
+
+    static setCurrentScene(scaneName) {
+        return obs.send('SetCurrentScene', {
+            'scene-name': scaneName
+        });
+    }
+    
+    static setCurrentTransition(transitionName) {
+        return obs.send('SetCurrentTransition', {
+            'transition-name': transitionName
+        });
+    }
+    
+    static setTransitionDuration(ms) {
+        return obs.send('SetTransitionDuration', {
+            'duration': ms
+        });
+    }
+
+    static setTransition(scaneName) {
+        return obs.send('SetCurrentScene', {
+            'scene-name': scaneName
+        });
+    }
+
+    static setVolume(sourceName, volume) {
+        return obs.send('SetVolume', {
+            'source': sourceName,
+            'volume': volume,
+            'useDecibel': false,
+        });
+    }
+
+    static setMute(sourceName, muted) {
+        return obs.send('SetMute', {
+            'source': sourceName,
+            'mute': muted,
+        });
+    }
+
+    static setAudioMonitorType(sourceName, monitorType) {
+        return obs.send('SetAudioMonitorType', {
+            'sourceName': sourceName,
+            'monitorType': monitorType,
+        });
+    }
+
+    static getSourceSettings(source) {
+        return obs.send('GetSourceSettings', {
+            'sourceName': source.name,
+        }).then(res => res.sourceSettings);
+    }
+
+    static setSourceSettings(source, sourceSettings = {}) {
+        return obs.send('SetSourceSettings', {
+            'sourceName': source.name,
+            'sourceSettings': sourceSettings
+        }).then(res => res.sourceSettings);
+    }
+
+    static reorderSceneItems(sceneName, items = []) {
+        return obs.send('ReorderSceneItems', {
+            'sourceName': sceneName,
+            'items': items
+        });
+    }
+
+    static getSceneItemProperties(sceneItem) {
+        return obs.send('GetSceneItemProperties', {
+            'item': sceneItem.name,
+        }).then(res => res);
+    }
+
+    static setSceneItemProperties(sceneName, sceneItem, settings) {
+        return obs.send('SetSceneItemProperties', {
+            'scene-name': sceneName,
+            'item': sceneItem,
+            ...settings
+        }).then(res => res);
+    }
+
+    static on(event, callback) {
+        listeners$1[event] = listeners$1[event] || [];
+        const listenrIndex = listeners$1[event].push(callback);
+        const cancel = () => {
+            listeners$1[event].splice(listenrIndex, 1);
+        };
+        return cancel;
+    }
+
+}
+
+/*
+ * Easing Functions - inspired from http://gizma.com/easing/
+ * only considering the t value for the range [0, 1] => [0, 1]
+ */
+const Easing = {
+    linear: (t) => t,
+    easeInQuad: (t) => t * t,
+    easeOutQuad: (t) => t * (2 - t),
+    easeInOutQuad: (t) => t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
+    easeInCubic: (t) => t * t * t,
+    easeOutCubic: (t) => (--t) * t * t + 1,
+    easeInOutCubic: (t) => t < .5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1,
+    // easeInQuart: (t) => t * t * t * t,
+    // easeOutQuart: (t) => 1 - (--t) * t * t * t,
+    // easeInOutQuart: (t) => t < .5 ? 8 * t * t * t * t : 1 - 8 * (--t) * t * t * t,
+    // easeInQuint: (t) => t * t * t * t * t,
+    // easeOutQuint: (t) => 1 + (--t) * t * t * t * t,
+    // easeInOutQuint: (t) => t < .5 ? 16 * t * t * t * t * t : 1 + 16 * (--t) * t * t * t * t
+};
+
+const lerp = (x, y, a) => x * (1 - a) + y * a;
+
+function interpolateState(a, state1, state2) {
+    return {
+        crop: {
+            bottom: lerp(state1.crop.bottom, state2.crop.bottom, a),
+            left: lerp(state1.crop.left, state2.crop.left, a),
+            right: lerp(state1.crop.right, state2.crop.right, a),
+            top: lerp(state1.crop.top, state2.crop.top, a)
+        },
+        position: {
+            alignment: 5,
+            x: lerp(state1.position.x, state2.position.x, a),
+            y: lerp(state1.position.y, state2.position.y, a)
+        },
+        rotation: lerp(state1.rotation, state2.rotation, a),
+        scale: {
+            x: lerp(state1.scale.y, state2.scale.y, a),
+            y: lerp(state1.scale.y, state2.scale.y, a)
+        },
+        width: lerp(state1.width, state2.width, a),
+        height: lerp(state1.height, state2.height, a),
+    }
+}
+
+async function transitionState(scene, source, fromState, toState, easingFunc, length) {
+    const oldState = fromState;
+    const newState = toState;
+
+    OBS.setSceneItemProperties(scene, source, oldState);
+
+    let lastTick = 0;
+    let t = 0;
+
+    const int = setInterval(() => {
+        const delta = Date.now() - lastTick;
+
+        if (lastTick && t < 1) {
+            t += (delta / 1000) / length;
+
+            const v = easingFunc(t);
+
+            const interpState = interpolateState(v, oldState, newState);
+            OBS.setSceneItemProperties(scene, source, interpState);
+        } else if(lastTick) {
+            clearInterval(int);
+        }
+
+        lastTick = Date.now();
+    }, 1000 / 60);
+}
+
+class Transitions {
+
+    static async getState(sourceName) {
+        return OBS.getSceneItemProperties({ name: sourceName });
+    }
+
+    static async transitionSource(scene, source, fromState, toState, easingFunc, len) {
+        transitionState(scene, source, fromState, toState, easingFunc, len);
+    }
+
+}
+
+let presets = Config.get('layout-presets') || [];
+
+class LayoutPresets {
+
+    static getPresets() {
+        return presets;
+    }
+
+    static async playPreset(preset, easing, length) {
+        const easingFunc = Easing[easing];
+
+        for(let source of preset.slice(1)) {
+            Transitions.getState(source.name).then(state => {
+                Transitions.transitionSource(state.currentScene, source.name, state, source, easingFunc, length);
+            }).catch(err => {
+                console.log('Error transitioning source, ', err);
+            });
+        }
+    }
+
+    static async getSceneSourcesStates() {
+        const state = OBS.getState();
+        const currentScene = state.currentScene;
+        const scene = state.scenes.find(s => s.name == currentScene);
+        const sources = scene.sources;
+        const transforms = sources.map(({ name }) => {
+            return Transitions.getState(name).then(source => {
+                source.scene = scene.name;
+                return source;
+            });
+        });
+        return Promise.all(transforms);
+    }
+    
+    static async saveNewPreset() {
+        const sceneTransforms = await this.getSceneSourcesStates();
+        sceneTransforms.unshift("Layout Preset " + (presets.length + 1));
+        presets.push(sceneTransforms);
+        this.savePresets();
+    }
+    
+    static savePresets() {
+        Config.set('layout-presets', presets);
+    }
+    
+    static deletePreset(index) {
+        presets.splice(index, 1);
+        this.savePresets();
+    }
+
+}
+
+class Streamlabs {
+
+    static get connected() {
+        return this.socket ? this.socket.connected : false;
+    }
+
+    static on(event, callback) {
+        const listeners = this.listeners;
+        listeners[event] = listeners[event] ? listeners[event] : [];
+        listeners[event].push(callback);
+    }
+
+    static emit(event, msg) {
+        const listeners = this.listeners;
+        if(listeners[event]) {
+            for(let callback of listeners[event]) callback(msg);
+        }
+    }
+
+    static disconnect() {
+        this.socket.disconnect();
+    }
+
+    static async connect() {
+        return new Promise(async (resolve, reject) => {
+            if(!this.socket) {
+                const access_token = Config.get('streamlabs-websocket-token');
+                const service = `https://sockets.streamlabs.com?token=${access_token}`;
+
+                this.socket = io(service, { transports: ['websocket'] });
+    
+                this.socket.on('event', (event) => {
+                    const events = ['raid', 'follow', 'donation', 'host', 'subscription', 'resub'];
+
+                    if(events.includes(event.type)) {
+                        for(let message of event.message) {
+                            message.type = event.type;
+                            this.emit(event.type, message);
+                        }
+                    }
+                });
+
+                this.socket.on('connect', () => {
+                    console.log('connected');
+                    resolve(this.connected);
+                });
+
+            } else {
+                reject();
+            }
+        }).catch(err => {
+            if(err) console.error(err);
+        })
+    }
+
+}
+
+Config.on('streamlabs-websocket-token', e => {
+    console.log(e);
+    Streamlabs.connect();
+});
+
+Streamlabs.connect();
+
+Streamlabs.socket = null;
+Streamlabs.listeners = {};
+
+// Streamlabs stuff
+
+let subs = Config.get('sub-counter') || 0;
+let donated = Config.get('donation-counter') || 0;
+
+Streamlabs.on('subscription', handleSub$1);
+Streamlabs.on('resub', handleSub$1);
+Streamlabs.on('donation', handleDonation$1);
+
+function handleDonation$1(e) {
+    const amount = +e.formatted_amount.replace(/[\€|\$]/g, '');
+    donated += amount;
+    Config.set('donation-counter', donated);
+
+    const history = Config.get('event-history');
+    history.unshift(e);
+    Config.set('event-history', history);
+}
+
+function handleSub$1(e) {
+    subs++;
+    Config.set('sub-counter', subs);
+    
+    const history = Config.get('event-history');
+    history.unshift(e);
+    Config.set('event-history', history);
+}
+
+if(!Config.get('donation-counter')) {
+    Config.set('donation-counter', donated);
+}
+
+if(!Config.get('sub-counter')) {
+    Config.set('sub-counter', subs);
+}
+
+if(!Config.get('event-history')) {
+    Config.set('event-history', []);
+}
+
+// end
+
+if(!Config.get('start-time')) {
+    Config.set('start-time', 60 * 60 * 12); // seconds
+}
+
+if(!Config.get('sub-add-time')) {
+    Config.set('sub-add-time', 60 * 5); // seconds
+}
+
+if(!Config.get('donation-add-time')) {
+    Config.set('donation-add-time', 60 * 1); // seconds
+}
+
+const bc = new BroadcastChannel('obs-tools-widget-com');
+
+class Timer extends DockTab {
+
+    static get styles() {
+        return css`
+            ${super.styles}
+            :host {
+                display: grid;
+                height: 100%;
+                grid-template-rows: auto auto auto auto 1fr auto;
+            }
+            input {
+                display: inline-block;
+                width: 40px;
+                text-align: center;
+            }
+            .timer-controls {
+                margin: 10px 0px;
+                display: grid;
+                grid-auto-flow: column;
+                justify-items: center;
+                justify-content: center;
+                grid-gap: 5px;
+            }
+            .timer-clock {
+                display: grid;
+                grid-auto-flow: row;
+                justify-items: center;
+                justify-content: center;
+                margin-top: 5px;
+            }
+            .timer {
+                font-size: 28px;
+            }
+            .sub-timer {
+                margin-top: 5px;
+                opacity: 0.75;
+            }
+            .material-icons.inline {
+                font-size: 18px;
+                vertical-align: middle;
+                margin-top: -4px;
+                margin-right: 2px;
+            }
+            select {
+                margin-left: 5px;
+            }
+            .history {
+                width: 100%;
+                overflow: auto;
+                height: 120px;
+                border: 1px solid rgb(54, 54, 54);
+                background: rgb(26, 26, 26);
+                grid-column: 1 / span 2;
+            }
+            .history-entry {
+                font-size: 12px;
+                padding: 7px 10px;
+                margin: 5px 5px 0px 5px;
+                background: #363636;
+                border-radius: 3px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .inputs {
+                width: 100%;
+                display: grid;
+                grid-template-columns: auto auto;
+                grid-template-rows: auto 1fr;
+                grid-gap: 10px;
+            }
+            .inputs input {
+                background: transparent;
+                border: none;
+            }
+            .inputs label {
+                display: inline;
+            }
+            .timer-autoreset {
+                margin-top: 10px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+        `;
+    }
+
+    constructor() {
+        super();
+
+        this.time = 60 * 60 * 12;
+        this.elapsedTime = 0;
+        this.autoSceneSwitchEnabled = false;
+        this.subathonFeaturesEnabled = false;
+
+        if(Config.get('elapsed-time') != null) {
+            this.elapsedTime = Config.get('elapsed-time');
+        }
+        if(Config.get('timer') != null) {
+            this.time = Config.get('timer');
+        }
+
+        this.timerPlaying = false;
+
+        let lastTick = null;
+        const updateTimer = ms => {
+            if(ms && lastTick) {
+                const delta = ms - lastTick;
+                const deltaSecs = delta / 1000;
+        
+                if(this.time - deltaSecs > 0) {
+                    this.time -= deltaSecs;
+                    this.elapsedTime += deltaSecs;
+                } else {
+                    this.time = 0;
+                    this.timerPlaying = false;
+                    this.onTimerEnd();
+                }
+                this.update();
+            }
+            if(this.timerPlaying) {
+                setTimeout(() => {
+                    updateTimer(Date.now());
+                }, 1000 / 12);
+            }
+            lastTick = ms;
+        };
+        updateTimer();
+
+        this.pausePlayTimer = () => {
+            this.timerPlaying = !this.timerPlaying;
+
+            if(this.time === 0) {
+                this.timerPlaying = true;
+                this.resetTimer();
+            }
+    
+            if(this.timerPlaying === true) {
+                updateTimer();
+            }
+    
+            this.updateOverlayTimer();
+            this.update();
+        };
+
+        setInterval(() => {
+            Config.set('elapsed-time', this.elapsedTime);
+            Config.set('timer', this.time);
+        }, 2000);
+
+        this.updateOverlayTimer();
+
+        this.obsScenes = [];
+        OBS.onReady(() => {
+            OBS.getScenes().then(scenes => {
+                this.obsScenes = scenes;
+                this.update();
+            });
+        });
+
+        // subathon features
+        const handleDonation = (e) => {
+            if(this.subathonFeaturesEnabled) {
+                const amount = +e.formatted_amount.replace(/[\€|\$]/g, '');
+                const donoAddTime = Config.get('donation-add-time') * amount;
+                this.time += donoAddTime;
+                if(this.timerPlaying) {
+                    this.updateOverlayTimer();
+                }
+            }
+        };
+        
+        const handleSub = (e) => {
+            if(this.subathonFeaturesEnabled) {
+                const subAddTime = Config.get('sub-add-time');
+                this.time += subAddTime;
+                if(this.timerPlaying) {
+                    this.updateOverlayTimer();
+                }
+            }
+        };
+
+        Streamlabs.on('subscription', handleSub);
+        Streamlabs.on('resub', handleSub);
+        Streamlabs.on('donation', handleDonation);
+
+        Config.on('sub-counter', () => {
+            subs = Config.get('sub-counter');
+            this.update();
+        });
+        Config.on('dono-counter', () => {
+            donated = Config.get('donation-counter');
+            this.update();
+        });
+        Config.on('event-history', () => this.update());
+    }
+
+    removeHistoryEntry(entry) {
+        const history = Config.get('event-history');
+        history.splice(history.indexOf(entry), 1);
+        Config.set('event-history', history);
+    }
+
+    updateOverlayTimer() {
+        bc.postMessage({ 
+            subs: subs,
+            donated: donated,
+            type:'timer', 
+            time: this.time,
+            playstate: this.timerPlaying
+        });
+    }
+
+    resetTimer() {
+        if(confirm('Reset timer to start time?')) {
+            this.forceReset();
+        }
+    }
+
+    forceReset() {
+        const startTime = Config.get('start-time');
+        this.time = startTime;
+        this.elapsedTime = 0;
+        this.updateOverlayTimer();
+        this.update();
+
+        Config.set('sub-counter', 0);
+        Config.set('donation-counter', 0);
+    }
+
+    onTimerEnd() {
+        if(this.autoSceneSwitchEnabled) {
+            const selectEle = this.shadowRoot.querySelector('#autoSwitchSceneSelect');
+            const sceneToSwitchTo = selectEle.value;
+            if(sceneToSwitchTo && sceneToSwitchTo !== "none") {
+                OBS.setCurrentScene(sceneToSwitchTo);
+            }
+        }
+        if(this.shadowRoot.querySelector('#autoreset').checked) {
+            this.forceReset();
+            setTimeout(() => this.pausePlayTimer(), 1000);
+        }
+    }
+
+    pausePlayTimer() {}
+
+    addMinute() {
+        this.time += 60;
+        this.update();
+        this.updateOverlayTimer();
+    }
+
+    subtractMinute() {
+        this.time -= 60;
+        this.update();
+        this.updateOverlayTimer();
+    }
+
+    render() {
+        const startTime = Config.get('start-time');
+        const hours = Math.floor(startTime / 60 / 60);
+        const minutes = Math.floor(startTime / 60) % 60;
+        const seconds = Math.floor(startTime) % 60;
+
+        const elapsedHours = Math.round((this.elapsedTime + 0.5) / 60 / 60);
+        const elapsedMinutes = Math.round((this.elapsedTime + 0.5) / 60) % 60;
+        const elapsedSeconds = Math.round((this.elapsedTime + 0.5)) % 60;
+
+        const timerHours = Math.floor(this.time / 60 / 60);
+        const timerMinutes = Math.floor(this.time / 60) % 60;
+        const timerSeconds = Math.floor(this.time) % 60;
+
+        const subAddTime = Config.get('sub-add-time');
+        const subMinutes = Math.floor(subAddTime / 60) % 60;
+        const subSeconds = Math.floor(subAddTime) % 60;
+
+        const donoAddTime = Config.get('donation-add-time');
+        const donoMinutes = Math.floor(donoAddTime / 60) % 60;
+        const donoSeconds = Math.floor(donoAddTime) % 60;
+
+        const updateStartTime = () => {
+            const h = this.shadowRoot.querySelector('#startTimeH').value, 
+                  m = this.shadowRoot.querySelector('#startTimeM').value, 
+                  s = this.shadowRoot.querySelector('#startTimeS').value;
+
+            const time = (h * 60 * 60) + (m * 60) + (s);
+            Config.set('start-time', time);
+        };
+
+        const updateSubTime = () => {
+            const m = this.shadowRoot.querySelector('#subTimeM').value, 
+                  s = this.shadowRoot.querySelector('#subTimeS').value;
+
+            const time = (m * 60) + (s);
+            Config.set('sub-add-time', time);
+        };
+
+        const updateDonoTime = () => {
+            const m = this.shadowRoot.querySelector('#donoTimeM').value, 
+                  s = this.shadowRoot.querySelector('#donoTimeS').value;
+
+            const time = (m * 60) + (s);
+            Config.set('donation-add-time', time);
+        };
+
+        const history = Config.get('event-history');
+
+        return html`
+            <link href="./material-icons.css" rel="stylesheet">
+
+            <obs-dock-tab-section section-title="Timer">
+                <div class="timer-clock">
+                    <div class="timer">
+                        ${timerHours.toFixed(0).padStart(2, "0")}
+                        :
+                        ${timerMinutes.toFixed(0).padStart(2, "0")}
+                        :
+                        ${timerSeconds.toFixed(0).padStart(2, "0")}
+                    </div>
+                    <div class="sub-timer">
+                        <span class="material-icons inline">timer</span>
+                        ${elapsedHours.toFixed(0).padStart(2, "0")}
+                        :
+                        ${elapsedMinutes.toFixed(0).padStart(2, "0")}
+                        :
+                        ${elapsedSeconds.toFixed(0).padStart(2, "0")}
+                    </div>
+                </div>
+                <div class="timer-controls">
+                    <button class="icon-button" @click="${() => this.pausePlayTimer()}">
+                        <span class="material-icons">
+                            ${this.timerPlaying ? "pause" : "play_arrow"}
+                        </span>
+                    </button>
+                    <button @click="${() => this.resetTimer()}" class="secondary icon-button">
+                        <span class="material-icons">replay</span>
+                    </button>
+                    <button @click="${() => this.addMinute()}" class="secondary">+1 m</button>
+                    <button @click="${() => this.subtractMinute()}" class="secondary">-1 m</button>
+                </div> 
+            </obs-dock-tab-section>
+            
+            <obs-dock-tab-section section-title="Timer Settings">
+                <div class="timer-settings">
+                    <div class="row">
+                        <label>Start</label>
+                        <div>
+                            <gyro-fluid-input id="startTimeH" min="0" max="999" steps="1" @change="${e => updateStartTime()}" value="${hours}" suffix="h"></gyro-fluid-input>
+                            <gyro-fluid-input id="startTimeM" min="0" max="59" steps="1" @change="${e => updateStartTime()}" value="${minutes}" suffix="m"></gyro-fluid-input>
+                            <gyro-fluid-input id="startTimeS" min="0" max="59" steps="1" @change="${e => updateStartTime()}" value="${seconds}" suffix="s"></gyro-fluid-input>
+                        </div>
+                    </div>
+                </div>
+            </obs-dock-tab-section>
+
+            <obs-dock-tab-section optional section-title="Subathon Features"
+                @setion-change="${(e) => {this.subathonFeaturesEnabled = e.target.enabled;}}">
+
+                <label>Time added by events:</label>
+                <div class="row">
+                    <label>Sub</label>
+                    <div>
+                        <gyro-fluid-input id="subTimeM" min="0" max="60" steps="1" @change="${e => updateSubTime()}" value="${subMinutes}" suffix="m"></gyro-fluid-input>
+                        <gyro-fluid-input id="subTimeS" min="0" max="59" steps="1" @change="${e => updateSubTime()}" value="${subSeconds}" suffix="s"></gyro-fluid-input>
+                    </div>
+                </div>
+                <div class="row">
+                    <label>Donation / 1</label>
+                    <div>
+                        <gyro-fluid-input id="donoTimeM" min="0" max="60" steps="1" @change="${e => updateDonoTime()}" value="${donoMinutes}" suffix="m"></gyro-fluid-input>
+                        <gyro-fluid-input id="donoTimeS" min="0" max="59" steps="1" @change="${e => updateDonoTime()}" value="${donoSeconds}" suffix="s"></gyro-fluid-input>
+                    </div>
+                </div>
+                <br/>
+                <label>Counters:</label>
+                <div class="row">
+                    <div class="inputs">
+                        <div>
+                            <label>Subs</label>
+                            <input type="number" value="${subs}" disabled="true"/>
+                        </div>
+                        <div>
+                            <label>Donated</label>
+                            <input type="number" value="${donated}" disabled="true"/>
+                        </div>
+                        <div class="history">
+                            ${history.map(entry => {
+                                if(entry.type == "resub" || entry.type == "subscription") {
+                                    return html`
+                                        <div class="history-entry">
+                                            <div>${entry.name} subbed.</div>
+                                            <button @click="${e => this.removeHistoryEntry(entry)}">X</button>
+                                        </div>
+                                    `;
+                                }
+                                if(entry.type == "donation") {
+                                    return html`
+                                        <div class="history-entry">
+                                            <div>${entry.name} donated ${entry.formatted_amount}.</div>
+                                            <button @click="${e => this.removeHistoryEntry(entry)}">X</button>
+                                        </div>
+                                    `;
+                                }
+                            })}
+                        </div>
+                    </div>
+
+                </div>
+            </obs-dock-tab-section>
+            
+            <obs-dock-tab-section optional section-title="Timed scene switch"
+                @setion-change="${(e) => {this.autoSceneSwitchEnabled = e.target.enabled;}}">
+
+                <div class="row">
+                    <label>Scene</label>
+                    <select id="autoSwitchSceneSelect" ?disabled="${this.obsScenes.length == 0}">
+                        ${this.obsScenes.length ? this.obsScenes.map(({ name }) => {
+                            return html`<option value="${name}">${name}</option>`;
+                        }) : html`<option value="none">No Scenes Available</option>`}
+                    </select>
+                </div>
+            </obs-dock-tab-section>
+        `;
+    }
+}
+
+customElements.define('obs-tools-timer', Timer);
+
+const API_CLIENT_ID = "tnjjsvaj7qyuem2as13e4gjsxwftcd";
+const API_REDIRECT_URI = "http://localhost:5500/public/dock/authenticated.html";
+
+let api_credentials = null;
+
+function parseHash(str) {
+    const res = {};
+    str.substring(1).split("&").map(item => item.split("=")).forEach(item => {
+        res[item[0]] = unescape(item[1]);
+    });
+    return res;
+}
+
+function log(...strs) {
+    console.log('[TwitchAPI]', ...strs);
+}
+
+class Twitch {
+
+    static get userInfo() {
+        return api_credentials.userInfo;
+    }
+
+    static get isAuthenticated() {
+        return api_credentials !== null;
+    }
+
+    static async refreshAccessToken(refresh_token) {
+        const url = `https://id.twitch.tv/oauth2/token?grant_type=refresh_token&refresh_token=${refresh_token}&client_id=${API_CLIENT_ID}&client_secret=${config.TWITCH_CLIENT_SECRET}`;
+        return fetch(url, { method: 'POST' }).then(res => res.json());
+    }
+
+    static async revokeAccessToken(access_token) {
+        const url = `https://id.twitch.tv/oauth2/revoke?client_id=${API_CLIENT_ID}&token=${access_token}`;
+        return fetch(url, { method: 'POST' }).then(res => res.json());
+    }
+
+    static requestAccessToken(code) {
+        const url = `https://id.twitch.tv/oauth2/token` +
+            `?client_id=${API_CLIENT_ID}` +
+            `&client_secret=${config.TWITCH_CLIENT_SECRET}` +
+            `&code=${code}` +
+            `&grant_type=authorization_code` +
+            `&redirect_uri=${API_REDIRECT_URI}`;
+
+        return fetch(url, { method: 'POST' })
+            .then(res => res.json())
+            .then(json => {
+                if (json.status) {
+                    throw new Error(json.message);
+                }
+                return json;
+            }).catch(err => {
+                console.error('Error requesting twitch access token');
+            })
+    }
+
+    static async getUserInfo() {
+        const url = `https://id.twitch.tv/oauth2/userinfo`;
+
+        if(api_credentials && api_credentials.access_token) {
+            return fetch(url, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${api_credentials.access_token}`,
+                }
+            }).then(res => res.json());
+        }
+        return null;
+    }
+
+    static loadAuthentication() {
+        const stored = localStorage.getItem('twitch_auth');
+        if(stored) {
+            const creds = JSON.parse(stored);
+            api_credentials = creds;
+            return true;
+        }
+        return false;
+    }
+
+    static async authenticate() {
+        return new Promise((resolve, reject) => {
+            log('authorizing...');
+
+            const api_scopes = [
+                "openid",
+                "bits:read",
+                "channel:manage:broadcast",
+                "channel:read:hype_train",
+                "channel:read:polls",
+                "channel:read:predictions",
+                "channel:read:redemptions",
+                "channel:read:subscriptions",
+                "chat:read"
+            ];
+            const claims = {
+                "id_token": {
+                    "picture": null,
+                    "preferred_username": null
+                }
+            };
+            const url = `https://id.twitch.tv/oauth2/authorize?client_id=${API_CLIENT_ID}&redirect_uri=${API_REDIRECT_URI}&response_type=token+id_token&scope=${api_scopes.join(" ")}&claims=${JSON.stringify(claims)}`;
+
+            const authWin = window.open(url);
+
+            const int = setInterval(async () => {
+                console.log('auth loaded');
+                const params = parseHash(authWin.location.hash);
+                if(params.access_token) {
+                    api_credentials = params;
+
+                    const userInfo = await Twitch.getUserInfo();
+                    api_credentials.userInfo = userInfo;
+
+                    localStorage.setItem('twitch_auth', JSON.stringify(api_credentials));
+
+                    authWin.close();
+                    resolve(params);
+                    clearInterval(int);
+                }
+            }, 200);
+        })
+    }
+
+    static async fetch(endpoint, args, access_token) {
+        // form args object to url search string
+        const searchParams = Object.keys(args).map(key => `${key}=${args[key]}`);
+
+        // fetch endpoint
+        return fetch(`https://api.twitch.tv/helix/${endpoint}?${searchParams.join('&')}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${access_token}`,
+                'Client-ID': API_CLIENT_ID
+            }
+        }).then(async res => {
+            const json = await res.json();
+            if (json.data) {
+                json.data.pagination = json.pagination;
+            }
+            return json.data;
+        }).catch(err => {
+            throw err;
+        });
+    }
+
+    static fetchClips(options) {
+        return Twitch.fetch('clips', options, api_credentials.access_token);
+    }
+
+    static fetchVideos(options) {
+        return Twitch.fetch('videos', options, api_credentials.access_token);
+    }
+
+    static fetchStreams(options) {
+        return Twitch.fetch('streams', options, api_credentials.access_token);
+    }
+
+    static fetchUsers(options) {
+        return Twitch.fetch('users', options, api_credentials.access_token);
+    }
+
+    static async getUserByLogin(login) {
+        if (!api_credentials) {
+            throw new Error('Not authenticated')
+        }
+        const users = await Twitch.fetch('users', { login }, api_credentials.access_token);
+        return users[0];
+    }
+
+    static async getStreamByLogin(login) {
+        if (!api_credentials) {
+            throw new Error('Not authenticated')
+        }
+        const users = await Twitch.fetch('streams', { user_login: login }, api_credentials.access_token);
+        return users[0];
+    }
+
+    static async getUserFollowers(userName) {
+        const userInfo = await getUserByLogin(userName);
+
+        const user = userInfo.data[0];
+
+        async function getFollowerChunk(cursor) {
+            const opts = {
+                from_id: user.id,
+                first: 100,
+            };
+
+            if (cursor) {
+                opts.after = cursor;
+            }
+
+            return await Twitch.fetch('users/follows', opts, api_credentials.access_token);
+        }
+
+        const followersTotal = [];
+
+        async function getAllFollowers(cursor) {
+            const followers = await getFollowerChunk(cursor);
+
+            followersTotal.push(...followers.data);
+
+            if (followers.pagination.cursor) {
+                await getAllFollowers(followers.pagination.cursor);
+            }
+        }
+
+        await getAllFollowers();
+
+        log(`${user.display_name} is following (${followersTotal.length}):`);
+
+        for (let user of followersTotal) {
+            log(`${user.followed_at}, ${user.to_name}`);
+        }
+    }
+
+    static async getChannelFollowers(channel) {
+        const userInfo = await getUserByLogin(channel);
+
+        const user = userInfo.data[0];
+
+        async function getFollowerChunk(cursor) {
+            const opts = {
+                to_id: user.id,
+                first: 100
+            };
+
+            if (cursor) {
+                opts.after = cursor;
+            }
+
+            return await Twitch.fetch('users/follows', opts, api_credentials.access_token);
+        }
+
+        const followersTotal = [];
+
+        async function getAllFollowers(cursor) {
+            const followers = await getFollowerChunk(cursor);
+
+            log(`${followersTotal.length} / ${followers.total}`);
+
+            followersTotal.push(...followers.data);
+
+            if (followers.pagination.cursor) {
+                await getAllFollowers(followers.pagination.cursor);
+            }
+        }
+
+        await getAllFollowers();
+
+        return followersTotal;
+    }
+
+    static async getChannelViewerOverlap(channel1, channel2) {
+        log('Getting channel followers...');
+
+        const followers1 = await getChannelFollowers(channel1);
+        const followers2 = await getChannelFollowers(channel2);
+
+        const hashmap = {};
+        let overlap = 0;
+
+        for (let follower of followers1) {
+            hashmap[follower.from_id] = 0;
+        }
+        for (let follower of followers2) {
+            if (hashmap[follower.from_id] != null) {
+                overlap++;
+                hashmap[follower.from_id] = 1;
+            }
+            hashmap[follower.from_id] = 0;
+        }
+
+        log(`${overlap} of ${channel1}(${followers1.length}) [${(overlap / followers1.length * 100).toFixed(3)}%] are also in ${channel2}`);
+    }
+
+    static async getChannelAllFollowers(channel) {
+        log('Getting channel followers...');
+
+        const followers = await getChannelFollowers(channel);
+
+        for (let user of followers) {
+            log(`${user.followed_at}, ${user.from_name}`);
+        }
+    }
+
+}
+
+class Settings extends DockTab {
+
+    static get styles() {
+        return css`
+            ${super.styles}
+            :host {
+                position: relative;
+            }
+            input.full {
+                width: calc(100% - 80px);
+            }
+            .label {
+                display: inline-block;
+                width: 80px;
+                font-size: 14px;
+                opacity: 0.75;
+            }
+            .client-id {
+                font-size: 12px;
+                position: absolute;
+                bottom: 8px;
+                left: 50%;
+                transform: translate(-50%, 0);
+                opacity: 0.25;
+                user-select: all;
+                width: 240px;
+            }
+        `;  
+    }
+
+    constructor() {
+        super();
+        Twitch.loadAuthentication();
+    }
+
+    showToken(id, btn) {
+        const input = this.shadowRoot.querySelector('#' + id);
+        input.type = "text";
+        let timer = 5;
+        btn.innerHTML = timer;
+        btn.disabled = true;
+        const int = setInterval(() => {
+            timer--;
+            btn.innerHTML = timer;
+            if(timer == 0) {
+                btn.innerHTML = "show";
+                input.type = "password";
+                clearInterval(int);
+                btn.disabled = false;
+            }
+        }, 1000);
+    }
+
+    render() {
+        const obsWebSocketPort = Config.get('obs-websocket-port') || "localhost:4444";
+        const obsWebSocketPassword = Config.get('obs-websocket-password') || "password";
+
+        return html`
+            <link href="./material-icons.css" rel="stylesheet">
+
+            <obs-dock-tab-section section-title="Streamlabs Integration">
+                <label>Streamlabs Websocket Token</label>
+                <input value="${Config.get('streamlabs-websocket-token') || ""}" 
+                    id="streamlabsWebsocketToken"
+                    @change="${e => Config.set('streamlabs-websocket-token', e.target.value)}" 
+                    class="full"
+                    type="password" 
+                    placeholder="Websocket Token"/>
+                <button @click="${e => this.showToken("streamlabsWebsocketToken", e.target)}">show</button>
+            </obs-dock-tab-section>
+
+            <obs-dock-tab-section section-title="OBS WebSocket Integration">
+                <div style="margin: 5px 0 15px 0;">
+                    <label>
+                        Install obs-websocket plugin for automation features.
+                    </label>
+                </div>
+                <div class="row">
+                    <label>WebSocket URL</label>
+                    <input value="${obsWebSocketPort}" 
+                        @change="${e => {
+                            Config.set('obs-websocket-port', e.target.value);
+                        }}" 
+                        placeholder="Port"/>
+                </div>
+                <div class="row">
+                    <label>Password</label>
+                    <input value="${obsWebSocketPassword}" 
+                        type="password"
+                        @change="${e => {
+                            Config.set('obs-websocket-password', e.target.value);
+                        }}" 
+                        placeholder="Password"/>
+                </div>
+            
+            </obs-dock-tab-section>
+
+            <obs-dock-tab-section section-title="Advanced">
+                <button @click="${e => location.reload()}">
+                    Reload Tool
+                </button>
+                <button @click="${e => {
+                    Config.fullReset();
+                }}">
+                    Reset Tool
+                </button>
+            </obs-dock-tab-section>
+
+            <div class="client-id">
+                <span>${localStorage.getItem('unique-client-id')}</span>
+            </div>
+        `;
+    }
+}
+
+customElements.define('obs-tools-settings', Settings);
+
+const overlays = [
+    { name: "Timer Overlay", url: "/apps/overlays/public/timer.html?layer-name=Timer%20Overlay&layer-width=1920&layer-height=1080" },
+    { name: "Subathon Overlay", url: "/apps/overlays/public/subathon.html?layer-name=Subathon%20Overlay&layer-width=1920&layer-height=1080" },
+    { name: "Labels Overlay", url: "/apps/overlays/public/labels.html?layer-name=Labels%20Overlay&layer-width=1920&layer-height=1080" }
+];
+
+class Overlays {
+
+    static getOverlayList() {
+        return overlays;
+    }
+
+    static addOverlay(name, url) {
+        overlays.push({ name, url });
+    }
+
+    static removeOverlay(name) {
+        let i = 0;
+        for(let overlay of overlays) {
+            if(overlay.name == name) {
+                overlays.splice(i, 1);
+                break;
+            }
+            i++;
+        }
+    }
+
+}
+
+const updateCallbacks = [];
+
+class PropertySender {
+
+    constructor() {
+        this.channel = new BroadcastChannel('obs-tool-com');
+        
+        this.selection = [];
+
+        OBS.on('selection', e => {
+            switch (e.updateType) {
+                case "SceneItemDeselected":
+                    let index = 0;
+                    for(let item of this.selection) {
+                        if(item.itemId == e.itemId) {
+                            this.selection.splice(index, 1);
+                            break;
+                        }
+                        index++;
+                    }
+                    this.update();
+                    break;
+                case "SceneItemSelected":
+                    this.selection.push({
+                        itemId: e.itemId,
+                        itemName: e.itemName,
+                    });
+                    break;
+            }
+
+            requestAnimationFrame(() => {
+                for(let item of this.selection) {
+                    item.name = item.itemName;
+                    this.requestPropertiesBySource(item);
+                }
+
+                this.update();
+            });
+        });
+
+        this.channel.onmessage = ({ data }) => {
+            if(data.type == "properties") {
+                this.handleProperties(data.data);
+            }
+        };
+    }
+
+    handleProperties(data) {
+        const props = data.properties;
+
+        for(let selected of this.selection) {
+            if(selected.source == data.source) {
+                selected.props = props;
+            }
+        }
+
+        this.update();
+    }
+
+    requestProperties(source) {
+        this.channel.postMessage({ type:'getProperties', data: { source } });
+    }
+
+    postProperty(propId, value) {
+        this.channel.postMessage({ type: "property.change", data: { property: propId, value } });
+    }
+
+    requestPropertiesBySource(source) {
+        OBS.getSourceSettings(source).then(settings => {
+            if(settings.url) {
+                this.requestProperties(settings.url);
+                source.source = settings.url;
+            }
+        });
+    }
+
+    update() {
+        for(let callback of updateCallbacks) {
+            callback();
+        }
+    }
+
+    onUpdate(callback) {
+        updateCallbacks.push(callback);
+    }
+
+}
+
+const propSender = new PropertySender();
+
+
+class Overlay extends DockTab {
+
+    static get styles() {
+        return css`
+            ${super.styles}
+            :host {
+                height: 100%;
+            }
+            .drag-and-button {
+                color: #eee;
+                display: flex;
+                justify-content: flex-start;
+                align-items: center;
+                text-decoration: none;
+                padding: 8px 4px;
+                font-size: 12.5px;
+                cursor: grab;
+                border-radius: 4px;
+            }
+            .drag-and-button:not(:last-child) {
+                border-bottom: 1px solid #1a1a1a;
+            }
+            .drag-and-button:hover {
+                background: #363636;
+            }
+            .drag-and-button:active {
+                background: #272727;
+                cursor: grabbing;
+            }
+            i.material-icons {
+                font-size: 14px;
+                margin: 0 8px 0 4px;
+            }
+            .container {
+                padding: 5px;
+            }
+            .overlay-section {
+                height: auto;
+            }
+            .properties {
+                
+            }
+            .placeholder {
+                text-align: center;
+                width: 100%;
+                opacity: 0.5;
+                margin: 8px 0;
+            }
+            gyro-fluid-input {
+                width: 150px;
+            }
+            button.reset-property-btn {
+                overflow: visible;
+                line-height: 100%;
+                border: none;
+                padding: 0;
+                text-align: right;
+                width: 28px;
+                min-width: 0;
+                height: 28px;
+                background: transparent;
+                margin-left: 10px;
+                margin-right: -10px;
+                border-radius: 4px;
+                border: 1px solid transparent;
+            }
+            button.reset-property-btn:hover {
+                background: #313131;
+                border: 1px solid #3f3f3f;
+            }
+            button.reset-property-btn:active {
+                background: #1b1b1b;
+            }
+            .reset-property-btn i.material-icons {
+                font-size: 16px;
+            }
+        `;
+    }
+
+    constructor() {
+        super();
+
+        this.selection = propSender.selection;
+
+        propSender.onUpdate(() => this.update());
+    }
+
+    resetProperty(propId, prop) {
+        propSender.postProperty(propId, prop.default);
+        prop.value = prop.default;
+
+        // have to update empty selection because it wouldnt update values on reset property :/
+        this.selection = [];
+        this.update();
+        requestAnimationFrame(() => {
+            this.selection = propSender.selection;
+            this.update();
+        });
+    }
+
+    renderProperty(propId, propObj) {
+        const id = propId;
+        const prop = propObj;
+        
+        switch(prop.type) {
+            case "boolean":
+                return html`
+                    <label>${prop.name}</label>
+                    <div>
+                        <input-switch ?checked="${prop.value}" @change="${e => {
+                            propSender.postProperty(id, e.target.checked ? 1 : 0);
+                        }}"></input-switch>
+                        <button class="reset-property-btn" @click="${e => this.resetProperty(id, prop)}">
+                            <i class="material-icons">restart_alt</i>
+                        </button>
+                    </div>
+                `;
+            case "number":
+                return html`
+                    <label>${prop.name}</label>
+                    <div>
+                        <gyro-fluid-input min="0" max="100" .value="${prop.value}" @input="${e => {
+                            propSender.postProperty(id, e.target.value);
+                        }}"></gyro-fluid-input>
+                        <button class="reset-property-btn" @click="${e => this.resetProperty(id, prop)}">
+                            <i class="material-icons">restart_alt</i>
+                        </button>
+                    </div>
+                `;
+            case "color":
+                return html`
+                    <label>${prop.name}</label>
+                    <button class="reset-property-btn" @click="${e => this.resetProperty(id, prop)}">
+                        <i class="material-icons">restart_alt</i>
+                    </button>
+                    <div>
+                        <color-picker .hex="${prop.value}" @input="${e => {
+                            propSender.postProperty(id, e.target.hex);
+                        }}"></color-picker>
+                    </div>
+                `;
+            default:
+                return html`
+                    <label>${prop.name}</label>
+                    <div>
+                        <input value="${prop.value}" @input="${e => {
+                            propSender.postProperty(id, e.target.value);
+                        }}"/>
+                        <button class="reset-property-btn" @click="${e => this.resetProperty(id, prop)}">
+                            <i class="material-icons">restart_alt</i>
+                        </button>
+                    </div>
+                `;
+        }
+    }
+
+    render() {
+        const overlays = Overlays.getOverlayList();
+
+        return html`
+            <link href="./material-icons.css" rel="stylesheet">
+            
+            <obs-dock-tab-section .enabled="${true}" optional section-title="Overlay Drag & Drop" class="overlay-section">
+                ${overlays.map(overlay => {
+                    return html`
+                        <a class="drag-and-button" @click="${e => e.preventDefault()}" href="${overlay.url}">
+                            <i class="material-icons">layers</i> 
+                            <span>${overlay.name}</span>
+                        </a>
+                    `;
+                })}
+            </obs-dock-tab-section>
+
+            <obs-dock-tab-section section-title="Overlay Properties">
+                <div class="properties">
+                    ${this.selection.map(item => {
+                        if(item.props) {
+                            return html`
+                                <div>${item.itemName}</div>
+                                ${Object.keys(item.props).map(key => html`
+                                    <div class="row">
+                                        ${this.renderProperty(key, item.props[key])}
+                                    </div>
+                                `)}
+                            `;
+                        } else {
+                            return html`
+                                <div>${item.itemName}</div>
+                                <div class="placeholder">No custom properties</div>
+                            `;
+                        }
+                    })}
+
+                    ${this.selection.length == 0 ? html`
+                        <div class="placeholder">Nothing Selected</div>
+                    ` : ""}
+                </div>
+            </obs-dock-tab-section>
+        `;
+    }
+}
+
+customElements.define('obs-tools-overlay', Overlay);
+
+class OverlayProperties extends DockTab {
+
+    static get styles() {
+        return css`
+            ${super.styles}
+            
+        `;
+    }
+
+    constructor() {
+        super();
+
+        this.selection = [];
+
+        OBS.on('selection', e => {
+            switch (e.updateType) {
+                case "SceneItemDeselected":
+                    let index = 0;
+                    for(let item of this.selection) {
+                        if(item.itemId == e.itemId) {
+                            this.selection.splice(index, 1);
+                            break;
+                        }
+                        index++;
+                    }
+                    break;
+                case "SceneItemSelected":
+                    this.selection.push({
+                        itemId: e.itemId,
+                        itemName: e.itemName,
+                    });
+                    break;
+            }
+            this.update();
+            this.handleSelection(this.selection);
+        });
+    }
+
+    handleSelection(selection) {
+        console.log(selection);
+        for(let item of selection) {
+            OBS.getSourceSettings(item).then(settings => {
+                console.log(settings);
+            });
+
+            const bc = new BroadcastChannel('obs-tool-com');
+            bc.postMessage({ type:'getProperties' });
+
+            bc.onmessage = ev => {
+                console.log(ev);
+                // get properties
+                // render ui
+                // send changes to overlay
+            };
+        }
+    }
+
+    render() {
+        return html`
+            <link href="./material-icons.css" rel="stylesheet">
+
+            <obs-dock-tab-section section-title="Overlay Properties">
+                <div>
+                    ${this.selection.map(item => {
+                        return html`
+                            <div>
+                                ${JSON.stringify(item)}
+                            </div>
+                        `;
+                    })}
+                </div>
+            </obs-dock-tab-section>
+        `;
+    }
+}
+
+customElements.define('overlay-properties', OverlayProperties);
+
+function setStatus(str) {
+    const tabEle = document.querySelector('obs-1uckybot-tab');
+    const ele = tabEle.shadowRoot.querySelector('#connStatus');
+    ele.innerText = str;
+}
+
+let mediaServerWs;
+function disbleMediaServerControl() {
+    if(mediaServerWs) {
+        mediaServerWs.close();
+    }
+}
+function enableMediaServerControl() {
+    const host = Config.get('stream-server-url') || "ws://localhost:8000";
+
+    mediaServerWs = new WebSocket(host);
+
+    mediaServerWs.addEventListener('message', msg => {
+        const data = JSON.parse(msg.data);
+        let scene = null;
+        console.log(data);
+        switch(data.type) {
+            case "stream-connected":
+                scene = getSelectedRemoteScene();
+                break;
+            case "stream-disconnected":
+                scene = getSelectedStandbyScene();
+                break;
+        }
+        if(scene) {
+            OBS.setCurrentScene(scene);
+        }
+    });
+
+    mediaServerWs.addEventListener('open', msg => {
+        console.log("connected to media server websocket");
+        setStatus('connected');
+    });
+    mediaServerWs.addEventListener('close', msg => {
+        console.log("disconnected from media server websocket");
+        setStatus('disconnected');
+    });
+}
+
+let getSelectedRemoteScene = () => {
+    const ele = document.querySelector('obs-1uckybot-tab');
+    const select = ele.shadowRoot.querySelector('#remoteStreamScene');
+    return select.value;
+};
+let getSelectedStandbyScene = () => {
+    const ele = document.querySelector('obs-1uckybot-tab');
+    const select = ele.shadowRoot.querySelector('#standByScene');
+    return select.value;
+};
+
+function updateToken(token) {
+    if(token != null) {
+        Config.set('1uckybot-websocket-token', token);
+
+        // tts overlay entry
+        const ttsUrl = `https://1uckybot.luckydye.de/overlay/?token=${token}&voice=Marlene&layer-name=1uckybot%20TTS%20overlay&layer-width=1920&layer-height=1080`;
+        Overlays.addOverlay('TTS', ttsUrl);
+    }
+}
+
+updateToken(Config.get('1uckybot-websocket-token'));
+
+class Luckybot extends DockTab {
+
+    static get styles() {
+        return css`
+            ${super.styles}
+            iframe {
+                border: none;
+            }
+        `;
+    }
+
+    constructor() {
+        super();
+
+        this.obsScenes = [];
+        OBS.onReady(() => {
+            OBS.getScenes().then(scenes => {
+                this.obsScenes = scenes;
+                this.update();
+            });
+        });
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        
+        if(Config.get("section-remote-stream controls-enabled")) {
+            enableMediaServerControl(); 
+        }
+    }
+
+    showToken(id, btn) {
+        const input = this.shadowRoot.querySelector('#' + id);
+        input.type = "text";
+        let timer = 5;
+        btn.innerHTML = timer;
+        btn.disabled = true;
+        const int = setInterval(() => {
+            timer--;
+            btn.innerHTML = timer;
+            if(timer == 0) {
+                btn.innerHTML = "show";
+                input.type = "password";
+                clearInterval(int);
+                btn.disabled = false;
+            }
+        }, 1000);
+    }
+
+    render() {
+        const mediaServerUrl = Config.get('stream-server-url') || "ws://localhost:8000";
+
+        return html`
+            <link href="./material-icons.css" rel="stylesheet">
+            
+            <obs-dock-tab-section section-title="Token">
+                <label>1uckybot Access Token</label>
+                <input value="${Config.get('1uckybot-websocket-token') || ""}" 
+                    id="luckybotWebsocketToken"
+                    @change="${e => updateToken(e.target.value)}" 
+                    class="full"
+                    type="password" 
+                    placeholder="1uckybot Token"/>
+                <button @click="${e => this.showToken("luckybotWebsocketToken", e.target)}">show</button>
+            </obs-dock-tab-section>
+
+            <obs-dock-tab-section optional section-title="Remote Stream Controls" @setion-change="${e => {
+                if(e.target.enabled) {
+                    enableMediaServerControl();
+                } else {
+                    disbleMediaServerControl();
+                }
+            }}">
+                <div class="row">
+                    <label>WebSocket URL</label>
+                    <input value="${mediaServerUrl}" 
+                        @change="${e => {
+                            Config.set('stream-server-url', e.target.value);
+                        }}" 
+                        placeholder="IP:Port"/>
+                </div>
+
+                <div class="row">
+                    <button @click="${() => {
+                        setStatus('reconnecting...');
+                        disbleMediaServerControl();
+                        setTimeout(() => {
+                            enableMediaServerControl();
+                        }, 2000);
+                    }}">Reconnect</button>
+
+                    <span id="connStatus">evaluating...</span>
+                </div>
+
+                <br/>
+                <div class="row">
+                    <label>Remote Scene</label>
+                    <select id="remoteStreamScene" ?disabled="${this.obsScenes.length == 0}">
+                        ${this.obsScenes.length ? this.obsScenes.map(({ name }) => {
+                            return html`<option value="${name}">${name}</option>`;
+                        }) : html`<option value="none">No Scenes Available</option>`}
+                    </select>
+                </div>
+                <div class="row">
+                    <label>Standby Scene</label>
+                    <select id="standByScene" ?disabled="${this.obsScenes.length == 0}">
+                        ${this.obsScenes.length ? this.obsScenes.map(({ name }) => {
+                            return html`<option value="${name}">${name}</option>`;
+                        }) : html`<option value="none">No Scenes Available</option>`}
+                    </select>
+                </div>
+            </obs-dock-tab-section>
+
+            <obs-dock-tab-section section-title="TTS">
+                <iframe src="https://1uckybot.luckydye.de/overlay/control-panel.html" />
+            </obs-dock-tab-section>
+        `;
+    }
+}
+
+customElements.define('obs-1uckybot-tab', Luckybot);
 
 class ScenePresets extends DockTab {
 
@@ -6374,150 +6378,210 @@ class Controler extends DockTab {
 
 customElements.define('obs-controler', Controler);
 
-class OverlayProperties extends DockTab {
+const Action = {
+    SCENE_SWITCH: 0,
+    TRIGGER_PRESET: 1,
+};
+
+const binds = Config.get('midi-binds') || [
+    // { midi: 156, action: Action.SCENE_SWITCH, itemId: 0 },
+    { midi: 157, action: Action.TRIGGER_PRESET, itemId: 0 },
+];
+
+function createBind() {
+    binds.push({ midi: 157, action: Action.SCENE_SWITCH, itemId: 0 });
+    saveBinds();
+}
+
+function saveBinds() {
+    Config.set('midi-binds', binds);
+}
+
+function deleteBind(bind) {
+    binds.splice(binds.indexOf(bind), 1);
+    saveBinds();
+}
+
+class MidiSceneSwitcher extends DockTab {
 
     static get styles() {
         return css`
             ${super.styles}
+            .section {
+                margin: 0 0 10px 0;
+            }
+            p {
+                opacity: 0.75;
+                margin-top: 0;
+                font-size: 12px;
+            }
+
+            .list {
+                margin-bottom: 20px;
+                min-height: 200px;
+                border-radius: 4px;
+                padding: 1px;
+                width: 100%;
+            }
+            .binding {
+                display: grid;
+                grid-template-columns: 1fr 1.2fr 1fr auto;
+                grid-auto-rows: 32px;
+                grid-gap: 4px;
+                align-items: center;
+                height: auto;
+                position: relative;
+                border-radius: 4px;
+                margin-bottom: 8px;
+            }
+            .binding:hover {
+                background: rgba(255, 255, 255, 0.025);
+            }
+            .binding:not(:last-child) {
+                border-bottom: 1px solid #1a1a1a;
+            }
+            .binding.header:hover { 
+                background: transparent;
+            }
+            .binding.header {
+                font-size: 13px;
+                opacity: 0.5;
+                height: auto;
+                margin-bottom: 8px;
+            }
+            dropdown-button {
+                min-width: 100%;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .midi-button {
+                width: 100%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
             
+            i.material-icons {
+                font-size: 16px;
+            }
+            .del-button {
+                cursor: pointer;
+                height: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 35px;
+                border-radius: 4px;
+            }
+            .del-button:hover {
+                background: #363636;
+                box-shadow: 1px 2px 8px rgba(0, 0, 0, 0.2);
+            }
+            .del-button:active {
+                background: #272727;
+                box-shadow: none;
+            }
+            .create-btn {
+                margin-top: 10px;
+            }
         `;
     }
 
     constructor() {
         super();
 
-        this.selection = [];
-
-        OBS.on('selection', e => {
-            switch (e.updateType) {
-                case "SceneItemDeselected":
-                    let index = 0;
-                    for(let item of this.selection) {
-                        if(item.itemId == e.itemId) {
-                            this.selection.splice(index, 1);
-                            break;
-                        }
-                        index++;
-                    }
-                    break;
-                case "SceneItemSelected":
-                    this.selection.push({
-                        itemId: e.itemId,
-                        itemName: e.itemName,
-                    });
-                    break;
-            }
+        OBS.on('ready', e => {
             this.update();
-            this.handleSelection(this.selection);
         });
     }
 
-    handleSelection(selection) {
-        console.log(selection);
-        for(let item of selection) {
-            OBS.getSourceSettings(item).then(settings => {
-                console.log(settings);
-            });
-
-            const bc = new BroadcastChannel('obs-tool-com');
-            bc.postMessage({ type:'getProperties' });
-
-            bc.onmessage = ev => {
-                console.log(ev);
-                // get properties
-                // render ui
-                // send changes to overlay
-            };
-        }
+    createBind() {
+        createBind();
+        this.update();
     }
 
     render() {
+        const scenes = OBS.getState().scenes.map(scene => {
+            return { name: scene.name, value: scene.name }
+        }) || [];
+        const presets = LayoutPresets.getPresets().map(preset => {
+            return { name: preset[0], value: preset[0] }
+        }) || [];
+        const actions = [
+            { name: "Switch Scene", value: Action.SCENE_SWITCH },
+            { name: "Trigger Preset", value: Action.TRIGGER_PRESET }
+        ];
+        const midiDevices = Midi.getDevices().map(([_, dev]) => {
+            return { name: dev.name, value: dev.name }
+        });
+
         return html`
             <link href="./material-icons.css" rel="stylesheet">
 
-            <obs-dock-tab-section section-title="Overlay Properties">
-                <div>
-                    ${this.selection.map(item => {
+            <obs-dock-tab-section section-title="Midi Scene Switcher">
+
+                <div class="row">
+                    <label>Midi Device</label>
+                    <div>
+                        <dropdown-button class="Action" .options="${midiDevices}" .value="${Config.get('midi-device')}" @change="${e => {
+                            Config.set('midi-device', e.target.value.value);
+                        }}"></dropdown-button>
+                    </div>
+                </div>
+
+                <div class="list">
+                    
+                    <div class="binding header">
+                        <div>Midi</div>
+                        <div>Action</div>
+                        <div>Item</div>
+                    </div>
+
+                    ${binds.map(bind => {
                         return html`
-                            <div>
-                                ${JSON.stringify(item)}
+                            <div class="binding">
+                                <div class="midi-button">${bind.midi}</div>
+
+                                <dropdown-button class="Action" .options="${actions}" .value="${bind.action}" @change="${e => {
+                                    bind.action = e.target.value.value;
+                                    // this.update();
+                                }}"></dropdown-button>
+
+                                ${( bind.action == Action.SCENE_SWITCH ? (
+                                    html`
+                                        <dropdown-button class="Action" .options="${scenes}" .value="${bind.itemId}" @change="${e => {
+                                            bind.itemId = e.target.value;
+                                            saveBinds();
+                                        }}"></dropdown-button>
+                                    `
+                                ) : "")}
+                                ${( bind.action == Action.TRIGGER_PRESET ? (
+                                    html`
+                                        <dropdown-button class="Action" .options="${presets}" .value="${bind.itemId}" @change="${e => {
+                                            bind.itemId = e.target.value;
+                                            saveBinds();
+                                        }}"></dropdown-button>
+                                    `
+                                ) : "")}
+
+                                <div class="del-button">
+                                    <i class="material-icons" style="opacity: 0.5;" @click="${e => {
+                                        deleteBind(bind);
+                                        this.update();
+                                    }}">delete</i>
+                                </div>
                             </div>
                         `;
                     })}
+
+                    <button class="create-btn" @click="${() => this.createBind()}">Create Bind</button>
                 </div>
             </obs-dock-tab-section>
         `;
     }
 }
 
-customElements.define('overlay-properties', OverlayProperties);
-
-class Streamlabs {
-
-    static get connected() {
-        return this.socket ? this.socket.connected : false;
-    }
-
-    static on(event, callback) {
-        const listeners = this.listeners;
-        listeners[event] = listeners[event] ? listeners[event] : [];
-        listeners[event].push(callback);
-    }
-
-    static emit(event, msg) {
-        const listeners = this.listeners;
-        if(listeners[event]) {
-            for(let callback of listeners[event]) callback(msg);
-        }
-    }
-
-    static disconnect() {
-        this.socket.disconnect();
-    }
-
-    static async connect() {
-        return new Promise(async (resolve, reject) => {
-            if(!this.socket) {
-                const access_token = Config.get('streamlabs-websocket-token');
-                const service = `https://sockets.streamlabs.com?token=${access_token}`;
-
-                this.socket = io(service, { transports: ['websocket'] });
-    
-                this.socket.on('event', (event) => {
-                    const events = ['raid', 'follow', 'donation', 'host', 'subscription', 'resub'];
-
-                    if(events.includes(event.type)) {
-                        for(let message of event.message) {
-                            message.type = event.type;
-                            this.emit(event.type, message);
-                        }
-                    }
-                });
-
-                this.socket.on('connect', () => {
-                    console.log('connected');
-                    resolve(this.connected);
-                });
-
-            } else {
-                reject();
-            }
-        }).catch(err => {
-            if(err) console.error(err);
-        })
-    }
-
-}
-
-Config.on('streamlabs-websocket-token', e => {
-    console.log(e);
-    Streamlabs.connect();
-});
-
-Streamlabs.connect();
-
-Streamlabs.socket = null;
-Streamlabs.listeners = {};
+customElements.define('obs-midi-switcher', MidiSceneSwitcher);
 
 const labelData = Config.get('labels') || {};
 

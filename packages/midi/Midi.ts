@@ -203,7 +203,7 @@ function animate() {
     draw();
 }
 
-export default class Midi {
+export class Midi {
 
     static onRedy(callback) {
         readyCallbacks.push(callback);

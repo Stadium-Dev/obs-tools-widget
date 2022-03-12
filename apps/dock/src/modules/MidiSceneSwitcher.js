@@ -1,9 +1,8 @@
 import { css, html } from 'lit-element';
-import Config from '../Config.js';
-import DockTab from './DockTab.js';
-import LayoutPresets from '../LayoutPresets.js';
-import OBS from '../obs/OBS';
-import Midi from '../Midi';
+import Config from '../services/Config.js';
+import DockTab from '../components/DockTab.js';
+import { OBS, LayoutPresets } from 'obs';
+import { Midi } from 'midi';
 
 const Action = {
     SCENE_SWITCH: 0,

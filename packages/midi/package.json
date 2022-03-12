@@ -1,0 +1,9 @@
+{
+    "name": "midi",
+    "version": "1.0.0",
+    "description": "midi integration",
+    "main": "./Midi.ts",
+    "types": "./Midi.ts",
+    "author": "",
+    "license": "ISC"
+}

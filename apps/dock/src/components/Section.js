@@ -1,5 +1,5 @@
 import { css, html, LitElement } from 'lit-element';
-import Config from '../Config.js';
+import Config from '../services/Config.js';
 import './Switch.js';
 
 export default class DockTabSection extends LitElement {

@@ -1,7 +1,7 @@
 import { css, html } from 'lit-element';
 import Config from '../Config.js';
 import Streamlabs from '../Streamlabs.js';
-import DockTab from './DockTab.js';
+import DockTab from '../components/DockTab.js';
 
 let subs = Config.get('sub-counter') || 0;
 let donated = Config.get('donation-counter') || 0;

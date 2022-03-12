@@ -1,8 +1,7 @@
 import { css, html } from 'lit-element';
-import DockTab from './DockTab.js';
-import Overlays from '../Overlays.js';
-import PropertySender from '../PropertySender.js';
-import './ColorPicker';
+import DockTab from '../../components/DockTab.js';
+import Overlays from '../../services/Overlays.js';
+import PropertySender from './PropertySender.js';
 
 const propSender = new PropertySender();
 

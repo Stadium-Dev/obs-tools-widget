@@ -1,5 +1,5 @@
 import { css, html } from 'lit-element';
-import DockTab from './DockTab.js';
+import DockTab from '../components/DockTab.js';
 
 export default class VideoAssist extends DockTab {
 
