@@ -17,3 +17,6 @@ Several Tools and simple browsing and configuration of custom overlays.
 - [ ] Midi Scene Switching and trigger layout presets
 - [ ] Scene/Source Presets like the overlay. creating sources with socket.
 - [ ] Add third party overlays
+- [ ] Add some default overlays
+    - Last Follower etc.
+    - Follower/Sub Alerts
