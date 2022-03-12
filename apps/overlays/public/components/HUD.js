@@ -1,4 +1,4 @@
-import { css, html, LitElement } from '../libs/lit-element.js';
+import { css, html, LitElement } from 'lit-element';
 import Config from '../../dock/Config.js';
 
 export default class OverlayHud extends LitElement {
