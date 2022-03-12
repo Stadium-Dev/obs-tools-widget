@@ -3,8 +3,7 @@
 Several Tools and simple browsing and configuration of custom overlays.
 
 ## OBS Custom Dock URL:
-- Github Pages (Latest): https://luckydye.github.io/obs-tools-widget/public/dock/index.html
-- Firebase App (Stable): https://obs-tools-widget.web.app/dock/
+- Github Pages (Latest): https://stadium-dev.github.io/obs-tools-widget/dock/public/
 
 ## Features:
 - [x] Timer
