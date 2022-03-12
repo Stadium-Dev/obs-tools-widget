@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+
+    <link rel="manifest" href="manifest.json">
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').then(registration => {
+                // Registration was successful
+                console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            }, function (err) {
+                // registration failed :(
+                console.log('ServiceWorker registration failed: ', err);
+            });
+        }
+    </script>
+
+    <link rel="shortcut icon" href="./images/icon262.png">
+    <link rel="apple-touch-icon" href="./images/icon262.png">
+
+    <meta name="theme-color" content="#333" />
+
+    <script src="./libs/socket.io.js"></script>
+    <script src="./libs/obs-websocket.js"></script>
+    <script src="./libs/layout/Layout.js" type="module"></script>
+
+    <script src="main.bundle.js" type="module"></script>
+
+    <link href="./material-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background: #1c1c1c;
+            font-family: 'Lato', sans-serif;
+            font-size: 14px;
+        }
+
+        gyro-layout {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        gyro-group {
+            --panel-background: hsl(0, 0%, 12%);
+            --tab-background: transparent;
+            --tab-active-background: rgb(41, 41, 41);
+            --tab-hover-background: #333333;
+            --tabs-background: hsl(0, 0%, 8%);
+            --tab-font-color: #eeeeee;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            margin: 0 4px;
+            margin-left: 2px;
+        }
+
+        ::-webkit-scrollbar-button {
+            display: none;
+        }
+
+        ::-webkit-scrollbar-track-piece {
+            background: #1c1c1c;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 5px;
+            border: none;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #444;
+        }
+    </style>
+</head>
+
+<body style="background: #1c1c1c;">
+
+    <gyro-layout>
+        <gyro-layout-column>
+            <gyro-group show-tabs>
+                <obs-tools-overlay tab="Overlay" tab-icon="layers"></obs-tools-overlay>
+
+                <obs-controler tab="Controler" tab-icon="sports_esports"></obs-controler>
+
+                <obs-tools-timer tab="Timer" tab-icon="timer"></obs-tools-timer>
+                <obs-scene-presets tab="Scene Presets" tab-icon="animation"></obs-scene-presets>
+
+                <obs-tools-settings tab="Settings" tab-icon="settings"></obs-tools-settings>
+            </gyro-group>
+        </gyro-layout-column>
+    </gyro-layout>
+
+</body>
+
+</html>

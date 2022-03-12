@@ -1,0 +1,25 @@
+{
+    "name": "OBS Tool",
+    "short_name": "OBS Tool",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#1c1c1c",
+    "description": "Additional Tools for OBS Livestreams.",
+    "icons": [
+        {
+            "src": "./images/icon.png",
+            "sizes": "48x48",
+            "type": "image/png"
+        },
+        {
+            "src": "./images/icon144.png",
+            "sizes": "144x144",
+            "type": "image/png"
+        },
+        {
+            "src": "./images/icon262.png",
+            "sizes": "262x262",
+            "type": "image/png"
+        }
+    ]
+}

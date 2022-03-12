@@ -1,0 +1,39 @@
+body {
+    background: #1c1c1c;
+    font-family: 'Lato', sans-serif;
+    font-size: 14px;
+}
+gyro-layout {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+gyro-group {
+    --panel-background: hsl(0, 0%, 12%);
+    --tab-background: transparent;
+    --tab-active-background: rgb(41, 41, 41);
+    --tab-hover-background: #333333;
+    --tabs-background: hsl(0, 0%, 8%);
+    --tab-font-color: #eeeeee;
+}
+::-webkit-scrollbar {
+    width: 8px;
+    margin: 0 4px;
+    margin-left: 2px;
+}
+::-webkit-scrollbar-button {
+    display: none;
+}
+::-webkit-scrollbar-track-piece  {
+    background: #1c1c1c;
+}
+::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 5px;
+    border: none;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #444;
+}
