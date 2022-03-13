@@ -5,3 +5,4 @@ import './components/FluidInput';
 import './components/Input';
 import './components/Section';
 import './components/Switch';
+import './components/layout/Layout';
