@@ -34,7 +34,7 @@
 
     <style>
         body {
-            background: #1c1c1c;
+            background: #131313;
             font-family: 'Lato', sans-serif;
             font-size: 14px;
         }
@@ -48,11 +48,11 @@
         }
 
         gyro-group {
-            --panel-background: hsl(0, 0%, 12%);
+            --panel-background: #272727;
             --tab-background: transparent;
-            --tab-active-background: rgb(41, 41, 41);
-            --tab-hover-background: #333333;
-            --tabs-background: hsl(0, 0%, 8%);
+            --tab-active-background: #313131;
+            --tab-hover-background: #313131;
+            --tabs-background: #1E1E1E;
             --tab-font-color: #eeeeee;
         }
 
@@ -93,6 +93,8 @@
 
                 <obs-tools-timer tab="Timer" tab-icon="timer"></obs-tools-timer>
                 <obs-scene-presets tab="Scene Presets" tab-icon="animation"></obs-scene-presets>
+
+                <obs-bitrate-detection tab="Bitrate Detection" tab-icon="signal_cellular_alt"></obs-bitrate-detection>
 
                 <obs-tools-settings tab="Settings" tab-icon="settings"></obs-tools-settings>
             </gyro-group>

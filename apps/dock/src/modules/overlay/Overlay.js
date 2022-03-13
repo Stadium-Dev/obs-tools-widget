@@ -51,7 +51,7 @@ export default class Overlay extends DockTab {
 				opacity: 0.5;
 				margin: 8px 0;
 			}
-			gyro-fluid-input {
+			fluid-input {
 				width: 150px;
 			}
 			button.reset-property-btn {
@@ -127,14 +127,14 @@ export default class Overlay extends DockTab {
 				return html`
 					<label>${prop.name}</label>
 					<div>
-						<gyro-fluid-input
+						<fluid-input
 							min="0"
 							max="100"
 							.value="${prop.value}"
 							@input="${(e) => {
 								propSender.postProperty(id, e.target.value);
 							}}"
-						></gyro-fluid-input>
+						></fluid-input>
 						<button class="reset-property-btn" @click="${(e) => this.resetProperty(id, prop)}">
 							<i class="material-icons">restart_alt</i>
 						</button>

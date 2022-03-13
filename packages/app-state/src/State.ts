@@ -146,7 +146,11 @@ export default class State {
 					// exists in both objects, itterate through this object too, if it is an object
 					const bValue = objectB[key];
 
-					if (isAnStateObject(bValue) && isAnStateObject(objectA[key])) {
+					if (Array.isArray(bValue) && Array.isArray(objectA[key])) {
+						if (objectA[key] !== bValue) {
+							local[key] = bValue != null ? bValue : null;
+						}
+					} else if (isAnStateObject(bValue) && isAnStateObject(objectA[key])) {
 						local[key] = itterateKeys(objectA[key], bValue);
 					} else {
 						if (objectA[key] !== bValue) {

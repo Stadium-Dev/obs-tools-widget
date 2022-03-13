@@ -9,6 +9,7 @@ import './modules/ScenePresets.js';
 import './modules/Controler.js';
 import './modules/MidiSceneSwitcher.js';
 import './modules/Labels.js';
+import './modules/BitrateDetection';
 import './services/Streamlabs.js';
 
 function uuidv4() {
