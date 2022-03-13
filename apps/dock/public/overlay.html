@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<style>
+			iframe {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				border: none;
+			}
+		</style>
+	</head>
+
+	<body>
+		<iframe id="frame"></iframe>
+
+		<script type="module">
+			import { Provider, PropertyStorage } from './libs/property-provider.js';
+
+			const overlayURL = location.hash.substring(1);
+
+			let loaded = false;
+			let eventBuffer = [];
+
+			frame.onload = handleFrameLoad;
+
+			if (overlayURL) {
+				Provider.onPropertyUpdate(handleMessage);
+
+				frame.src = overlayURL;
+			} else {
+				throw new Error('No overlay url provided.');
+			}
+
+			function postData(data) {
+				if (!loaded) {
+					// cache all messages if iframe is not loaded yet
+					eventBuffer.push(data);
+				} else {
+					frame.contentWindow.postMessage(data, '*');
+				}
+			}
+
+			function handleFrameMessage({ data }) {
+				if (data.type == 'properties') {
+					const props = data.properties;
+					const store = new PropertyStorage(overlayURL, props);
+
+					const storeData = store.getStore();
+					if (storeData) {
+						// post stored values
+						postData(
+							{
+								type: 'properties',
+								properties: store.getStore()
+							},
+							'*'
+						);
+					}
+				}
+			}
+
+			function handleFrameLoad() {
+				loaded = true;
+
+				frame.contentWindow.onmessage = handleFrameMessage;
+
+				console.log('Overlay initialized');
+				postData({ type: 'init' });
+
+				// send all the cahced messages
+				for (let data of eventBuffer) {
+					postData(data, '*');
+				}
+			}
+
+			function handleMessage({ data }) {
+				postData(data, '*');
+			}
+		</script>
+	</body>
+</html>

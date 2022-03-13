@@ -1,122 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400&display=swap" rel="stylesheet">
-    <style>
-        body {
-            background: #333;
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            margin: 0;
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-            padding-bottom: 150px;
-            box-sizing: border-box;
-        }
-        .background {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            opacity: 0;
-        }
-        .title {
-            font-family: 'TradeGothicW01-BoldCn20';
-            font-size: 180px;
-            color: #eee;
-            padding: 0 80px;
-            white-space: pre;
-            line-height: 100%;
-        }
-        .title .small {
-            display: inline-block;
-            font-size: 120px;
-            position: relative;
-            transform: translate(0px , -35px);
-            opacity: 0.85;
-        }
-        .title .big {
-            letter-spacing: -5px;
-        }
-        .title .subtitle {
-            opacity: 0.33;
-        }
-        .title .font {
-            font-size: 80px;
-            font-family: 'Lato', sans-serif;
-            font-weight: bold;
-        }
-    </style>
-</head>
-<body>
-    <div class="title">TITLE</div>
-    <script type="module">
-        import Config from '../dock/Config.js';
+	<head>
+		<link rel="preconnect" href="https://fonts.gstatic.com" />
+		<link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400&display=swap" rel="stylesheet" />
+		<style>
+			body {
+				background: transparent;
+				position: absolute;
+				left: 0;
+				top: 0;
+				width: 100%;
+				height: 100%;
+				margin: 0;
+				display: flex;
+				justify-content: flex-start;
+				align-items: center;
+				padding-bottom: 150px;
+				box-sizing: border-box;
+			}
+			.background {
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				z-index: -1;
+				opacity: 0;
+			}
+			.title {
+				font-family: 'Roboto', sans-serif;
+				font-size: 180px;
+				color: #eee;
+				padding: 0 80px;
+				white-space: pre;
+				line-height: 100%;
+			}
+			.title .small {
+				display: inline-block;
+				font-size: 120px;
+				position: relative;
+				transform: translate(0px, -35px);
+				opacity: 0.85;
+			}
+			.title .big {
+				letter-spacing: -5px;
+			}
+			.title .subtitle {
+				opacity: 0.33;
+			}
+			.title .font {
+				font-size: 80px;
+				font-family: 'Lato', sans-serif;
+				font-weight: bold;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="titleEle" class="title">TITLE</div>
 
-        function formatTitleText(text) {
-            const parts = [];
+		<script type="module">
+			const props = {
+				title: {
+					name: 'Title',
+					type: 'string',
+					default: 'Title',
+					value: 'Title'
+				}
+			};
 
-            const matches = [...text.matchAll(/\%[a-z]+%/g)];
-            for(let i = 0; i < matches.length; i++) {
-                const match = matches[i];
-                const nextMatch = matches[i+1];
-                let index = match.index;
-                let nextIndex = text.length;
-                if(nextMatch) {
-                    nextIndex = nextMatch.index;
-                }
+			window.addEventListener('message', (ev) => {
+				const data = ev.data;
+				const type = data.type;
 
-                let prefix = text.slice(index, index + match[0].length).replace(/\%/g, "");
-                let part = text.slice(index + match[0].length, nextIndex);
+				if (type == 'properties') {
+					// update ui with initial prop values
+					for (let key in data.properties) {
+						handlePopertyUpdate(key, data.properties[key].value);
+					}
+				}
 
-                part = part.replace(/\\t/g, "&#9;");
+				if (type == 'init') {
+					window.postMessage({ type: 'properties', properties: props }, '*');
+				}
 
-                const modes = prefix.split("");
-                let classes = [];
+				if ('property' in data) {
+					handlePopertyUpdate(data.property, data.value);
+				}
+			});
 
-                if(modes.indexOf('s') !== -1) {
-                    classes.push("small");
-                }
-                if(modes.indexOf('t') !== -1) {
-                    classes.push("subtitle");
-                }
-                if(modes.indexOf('b') !== -1) {
-                    classes.push("big");
-                }
-                if(modes.indexOf('f') !== -1) {
-                    classes.push("font");
-                }
-
-                part = `<span class="${classes.join(" ")}">${part}</span>`;
-
-                parts.push(part);
-            }
-
-            return parts.join("");
-        }
-
-        const titleEle = document.querySelector('.title');
-        if(Config.get('stream-title')) {
-            const text = Config.get('stream-title')
-            titleEle.innerHTML = formatTitleText(text);
-        }
-
-        const bc = new BroadcastChannel('obs-tools-widget-com');
-        bc.onmessage = ev => {
-            const data = ev.data;
-            const type = data.type;
-
-            if(type == "title") {
-                titleEle.innerHTML = formatTitleText(data.title);
-            }
-        }
-    </script>
-</body>
+			function handlePopertyUpdate(property, value) {
+				if (property == 'title') {
+					titleEle.innerHTML = value;
+				}
+			}
+		</script>
+	</body>
 </html>
