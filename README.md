@@ -17,3 +17,10 @@ Several Tools and simple browsing and configuration of custom overlays.
 - [ ] Add some default overlays
     - Last Follower etc.
     - Follower/Sub Alerts
+
+
+## Custom Overlays Integration
+
+1. Add Third Party Links of Overlay file (JS).
+2. When adding the Overlay to OBS, its loaded inside a iframe of a base overlay in the same Origin of the Dock.
+3. Send Properties to the Base Overlay Context, wich can propegate Data to the Iframe using postMessage.
