@@ -1,0 +1,9 @@
+{
+	"name": "actions",
+	"version": "1.0.0",
+	"description": "actions library",
+	"main": "./Actions.ts",
+	"types": "./Actions.ts",
+	"author": "",
+	"license": "ISC"
+}

@@ -1,7 +1,7 @@
 {
-    "name": "gamepad",
+    "name": "tree-view",
     "version": "1.0.0",
-    "description": "generic gamepad button mapping",
+    "description": "component for a tree view",
     "main": "./index.ts",
     "types": "./index.ts",
     "author": "",
