@@ -6,6 +6,10 @@ type StateObject = {
 	[key: string]: any;
 };
 
+// TODO: Store State in indexed DB instead of local storage.
+// 				Keep a table for every scope.
+//				Each row is a state in history.
+
 /**
  * Checks if arguemtn is a valid StateObject
  */

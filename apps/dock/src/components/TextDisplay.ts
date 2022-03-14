@@ -18,7 +18,7 @@ export default class TextDisplay extends LitElement {
 			<span>
 				${Array.isArray(this.value)
 					? this.value.map((data) => {
-							return html` <div>${data.name}: ${data.bitrate} kb/s</div> `;
+							return html`<div>${data.name}: ${data.bitrate} kb/s</div>`;
 					  })
 					: JSON.stringify(this.value)}
 			</span>
