@@ -6,7 +6,7 @@ import './components';
 // modules
 import './modules/Timer.js';
 import './modules/Settings.js';
-import './modules/overlay/Overlay.js';
+import './modules/overlay/Overlay';
 import './modules/overlay/OverlayProperties.js';
 import './modules/Luckybot.js';
 import './modules/ScenePresets.js';

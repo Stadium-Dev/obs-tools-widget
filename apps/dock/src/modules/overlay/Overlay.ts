@@ -2,9 +2,11 @@ import { css, html } from 'lit';
 import DockTab from '../../components/DockTab.js';
 import Overlays from '../../services/Overlays.js';
 import PropertySender from './PropertySender.js';
+import { customElement } from 'lit/decorators.js';
 
 const propSender = new PropertySender();
 
+@customElement('obs-tools-overlay')
 export default class Overlay extends DockTab {
 	static get styles() {
 		return css`
@@ -88,6 +90,29 @@ export default class Overlay extends DockTab {
 		this.selection = propSender.selection;
 
 		propSender.onUpdate(() => this.update());
+	}
+
+	connectedCallback(): void {
+		super.connectedCallback();
+
+		setTimeout(() => {
+			this.shadowRoot.querySelector("tree-view").setRoot( {
+						name: "test",
+						type: "file",
+						uncollapsed: true,
+						children: [{
+						name: "test",
+						type: "file",
+						uncollapsed: false,
+						children: [],
+				},{
+						name: "test",
+						type: "file",
+						uncollapsed: false,
+						children: [],
+				}],
+			} )
+		})
 	}
 
 	resetProperty(propId, prop) {
@@ -190,6 +215,10 @@ export default class Overlay extends DockTab {
 				})}
 			</obs-dock-tab-section>
 
+			<obs-dock-tab-section>
+				<tree-view></tree-view>
+			</obs-dock-tab-section>
+
 			<obs-dock-tab-section section-title="Overlay Properties">
 				<div class="properties">
 					${this.selection.map((item) => {
@@ -213,5 +242,3 @@ export default class Overlay extends DockTab {
 		`;
 	}
 }
-
-customElements.define('obs-tools-overlay', Overlay);

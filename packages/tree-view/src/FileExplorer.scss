@@ -35,58 +35,6 @@ a[href]:hover {
 	text-decoration: underline;
 }
 
-input::-webkit-inner-spin-button {
-	-webkit-appearance: none;
-}
-
-input[type='text'] {
-	text-align: left;
-}
-
-textarea {
-	width: 100%;
-	min-height: 80px;
-	background: var(--gyro-level3-bg);
-	border: none;
-	color: white;
-	font-family: sans-serif;
-}
-
-input[type='range'] {
-	-webkit-appearance: none;
-	background: transparent;
-	padding: 0;
-	outline: none;
-	cursor: pointer;
-}
-
-input[type='range']::-webkit-slider-runnable-track:hover {
-	background: var(--gyro-background);
-}
-
-input[type='range']::-webkit-slider-runnable-track {
-	width: 300px;
-	height: 8px;
-	background: var(--gyro-background);
-	border: none;
-	border-radius: 3px;
-}
-
-input[type='range']::-webkit-slider-thumb {
-	-webkit-appearance: none;
-	border: none;
-	height: 8px;
-	width: 8px;
-	color: var(--gyro-accent-color);
-	background: currentColor;
-	border-radius: 50%;
-	box-shadow: 0 0 0 2px currentColor;
-}
-
-input[type='range']:hover::-webkit-slider-thumb {
-	color: var(--gyro-accent-color);
-}
-
 .toolbar {
 	position: relative;
 	z-index: 100;

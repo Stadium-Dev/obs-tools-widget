@@ -1,10 +1,8 @@
-import { html, LitElement } from 'lit';
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
 import styles from './FileExplorer.scss';
 import typeIconMap from './TypeIcons';
 import fileExtensions from './FileExtensionTypes';
-import '../Icon';
-import '../ContextMenu';
-import '../Input';
 
 class OpenFileEvent extends Event {
 	constructor(file) {
@@ -40,7 +38,19 @@ class AddFileEvent extends Event {
 
 */
 
+@customElement('tree-view')
 export class FileExplorer extends LitElement {
+
+	static get styles() {
+		return css`
+			${styles}
+		`;
+	}
+
+	inFocus() {
+		return this._inFocus;
+	}
+	
 	constructor() {
 		super();
 
@@ -83,14 +93,23 @@ export class FileExplorer extends LitElement {
 				const item = this.getItemByIndex(selected);
 				this.dispatchEvent(new OpenFileEvent(item));
 			}
-			this.render();
+			this.requestUpdate();
 
 			e.stopImmediatePropagation();
 		});
-	}
 
-	connectedCallback() {
-		this.render();
+		// focus handlers
+		this._inFocus = true;
+
+		this.addEventListener('mousemove', e => {
+				this._inFocus = true;
+		});
+		this.addEventListener('mouseleave', e => {
+				this._inFocus = false;
+		});
+		this.addEventListener('mouseout', e => {
+				this._inFocus = false;
+		});
 	}
 
 	setFilter(key, regex) {
@@ -99,6 +118,7 @@ export class FileExplorer extends LitElement {
 
 	setRoot(tree) {
 		this.tree = tree;
+		this.requestUpdate();
 	}
 
 	findItem(searchString, children, results = []) {
@@ -165,7 +185,7 @@ export class FileExplorer extends LitElement {
 			}
 		}
 
-		this.render();
+		this.requestUpdate();
 	}
 
 	filterItem(item) {
@@ -175,10 +195,10 @@ export class FileExplorer extends LitElement {
 	toggleCollapse(item, state) {
 		state = state != null ? state : !item.uncollapsed;
 		item.uncollapsed = state;
-		this.render();
+		this.requestUpdate();
 	}
 
-	renderTemplate() {
+	render() {
 		if (!this.tree) {
 			return html`
 				<style>
@@ -391,18 +411,14 @@ export class FileExplorer extends LitElement {
 		};
 
 		const searchChangeHandler = (e) => {
-			const input = this.root.querySelector('.search-input');
+			const input = this.shadowRoot.querySelector('.search-input');
 			const items = this.findItem(input.value);
 
 			this.results = items;
-			this.render();
+			this.requestUpdate();
 		};
 
 		const template = html`
-			<style>
-				${componentStyles}
-				${styles}
-			</style>
 			<div class="search">
 				<gyro-input class="search-input" placeholder="Search" @change=${searchChangeHandler}></gyro-input>
 			</div>
@@ -412,8 +428,6 @@ export class FileExplorer extends LitElement {
 		return template;
 	}
 }
-
-customElements.define('gyro-explorer', FileExplorer);
 
 function getTypeByFilename(filename) {
 	const parts = filename.split('.');

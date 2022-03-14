@@ -8,5 +8,6 @@ import './components/Switch';
 import './components/TextDisplay';
 import './components/SceneSelector';
 import './components/layout/Layout';
+import 'tree-view';
 
 window.addEventListener('contextmenu', (e) => e.preventDefault());

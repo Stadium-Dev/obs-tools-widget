@@ -1,1 +1,1 @@
-export { FileExplorer } from './src/FileExplorer.js';
+export { FileExplorer } from './src/FileExplorer';
