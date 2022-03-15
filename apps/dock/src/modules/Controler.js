@@ -118,8 +118,9 @@ export default class Controler extends DockTab {
 							<div>
 								<span> ${btn} </span>
 								<span> ----> </span>
-								<span> ${JSON.stringify(this.buttonMap[btn])} </span>
 							</div>
+
+							<scene-selector .value="${this.buttonMap[btn].setCurrentScene}"></scene-selector>
 
 							<button
 								@click="${(e) => {

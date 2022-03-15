@@ -4,7 +4,7 @@
   "description": "tools custom dock",
   "main": "index.js",
   "scripts": {
-    "dev": "webpack watch",
+    "dev": "webpack -w",
     "build": "webpack"
   },
   "repository": {

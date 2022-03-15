@@ -69,8 +69,8 @@ export default class PropertySender {
 	requestPropertiesBySource(source) {
 		OBS.getSourceSettings(source).then((settings) => {
 			if (settings.url) {
-				this.requestProperties(settings.url);
 				source.source = settings.url;
+				this.requestProperties(settings.url);
 			}
 		});
 	}

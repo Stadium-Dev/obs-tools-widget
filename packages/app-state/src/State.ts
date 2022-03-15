@@ -6,6 +6,10 @@ type StateObject = {
 	[key: string]: any;
 };
 
+// TODO: Store State in indexed DB instead of local storage.
+// 				Keep a table for every scope.
+//				Each row is a state in history.
+
 /**
  * Checks if arguemtn is a valid StateObject
  */
@@ -146,7 +150,11 @@ export default class State {
 					// exists in both objects, itterate through this object too, if it is an object
 					const bValue = objectB[key];
 
-					if (isAnStateObject(bValue) && isAnStateObject(objectA[key])) {
+					if (Array.isArray(bValue) && Array.isArray(objectA[key])) {
+						if (objectA[key] !== bValue) {
+							local[key] = bValue != null ? bValue : null;
+						}
+					} else if (isAnStateObject(bValue) && isAnStateObject(objectA[key])) {
 						local[key] = itterateKeys(objectA[key], bValue);
 					} else {
 						if (objectA[key] !== bValue) {
