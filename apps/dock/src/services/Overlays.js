@@ -17,10 +17,10 @@ const overlays = [
 	}
 ];
 
-let cusromOverlays = [];
+let customOverlays = [];
 
 function save() {
-	localStorage.setItem('overlay-store', JSON.stringify(cusromOverlays));
+	localStorage.setItem('overlay-store', JSON.stringify(customOverlays));
 }
 
 function load() {
@@ -29,20 +29,23 @@ function load() {
 
 export default class Overlays {
 	static getOverlayList() {
-		cusromOverlays = load();
-		return [...overlays, ...cusromOverlays];
+		const saved = load();
+		if (saved) {
+			customOverlays = saved;
+		}
+		return [...overlays, ...customOverlays];
 	}
 
 	static addOverlay(name, url) {
-		cusromOverlays.push({ name, url });
+		customOverlays.push({ name, url });
 		save();
 	}
 
 	static removeOverlay(name) {
 		let i = 0;
-		for (let overlay of cusromOverlays) {
+		for (let overlay of customOverlays) {
 			if (overlay.name == name) {
-				cusromOverlays.splice(i, 1);
+				customOverlays.splice(i, 1);
 				break;
 			}
 			i++;

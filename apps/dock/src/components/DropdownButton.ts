@@ -194,7 +194,7 @@ export default class DropdownButton extends LitElement {
 
 	render() {
 		const options = this.props.options || [];
-		const value = this.props.value != null ? this.props.value.name || 'none' : 'none';
+		const value = this.props.value != null ? this.props.value.name || this.props.value || 'none' : 'none';
 
 		return html`
 			<div class="value">${value}</div>
