@@ -65,9 +65,7 @@ export default class Timer extends DockTab {
 		return css`
 			${super.styles}
 			:host {
-				display: grid;
 				height: 100%;
-				grid-template-rows: auto auto auto auto 1fr auto;
 			}
 			input {
 				display: inline-block;
@@ -341,10 +339,9 @@ export default class Timer extends DockTab {
 
 		const updateStartTime = () => {
 			const h = this.shadowRoot.querySelector('#startTimeH').value,
-				m = this.shadowRoot.querySelector('#startTimeM').value,
-				s = this.shadowRoot.querySelector('#startTimeS').value;
+				m = this.shadowRoot.querySelector('#startTimeM').value;
 
-			const time = h * 60 * 60 + m * 60 + s;
+			const time = h * 60 * 60 + m * 60;
 			Config.set('start-time', time);
 		};
 
@@ -398,7 +395,7 @@ export default class Timer extends DockTab {
 					<div class="row">
 						<label>Start</label>
 						<div>
-							<gyro-fluid-input
+							<fluid-input
 								id="startTimeH"
 								min="0"
 								max="999"
@@ -406,8 +403,8 @@ export default class Timer extends DockTab {
 								@change="${(e) => updateStartTime()}"
 								value="${hours}"
 								suffix="h"
-							></gyro-fluid-input>
-							<gyro-fluid-input
+							></fluid-input>
+							<fluid-input
 								id="startTimeM"
 								min="0"
 								max="59"
@@ -415,16 +412,7 @@ export default class Timer extends DockTab {
 								@change="${(e) => updateStartTime()}"
 								value="${minutes}"
 								suffix="m"
-							></gyro-fluid-input>
-							<gyro-fluid-input
-								id="startTimeS"
-								min="0"
-								max="59"
-								steps="1"
-								@change="${(e) => updateStartTime()}"
-								value="${seconds}"
-								suffix="s"
-							></gyro-fluid-input>
+							></fluid-input>
 						</div>
 					</div>
 				</div>
@@ -441,7 +429,7 @@ export default class Timer extends DockTab {
 				<div class="row">
 					<label>Sub</label>
 					<div>
-						<gyro-fluid-input
+						<fluid-input
 							id="subTimeM"
 							min="0"
 							max="60"
@@ -449,8 +437,8 @@ export default class Timer extends DockTab {
 							@change="${(e) => updateSubTime()}"
 							value="${subMinutes}"
 							suffix="m"
-						></gyro-fluid-input>
-						<gyro-fluid-input
+						></fluid-input>
+						<fluid-input
 							id="subTimeS"
 							min="0"
 							max="59"
@@ -458,13 +446,13 @@ export default class Timer extends DockTab {
 							@change="${(e) => updateSubTime()}"
 							value="${subSeconds}"
 							suffix="s"
-						></gyro-fluid-input>
+						></fluid-input>
 					</div>
 				</div>
 				<div class="row">
 					<label>Donation / 1</label>
 					<div>
-						<gyro-fluid-input
+						<fluid-input
 							id="donoTimeM"
 							min="0"
 							max="60"
@@ -472,8 +460,8 @@ export default class Timer extends DockTab {
 							@change="${(e) => updateDonoTime()}"
 							value="${donoMinutes}"
 							suffix="m"
-						></gyro-fluid-input>
-						<gyro-fluid-input
+						></fluid-input>
+						<fluid-input
 							id="donoTimeS"
 							min="0"
 							max="59"
@@ -481,7 +469,7 @@ export default class Timer extends DockTab {
 							@change="${(e) => updateDonoTime()}"
 							value="${donoSeconds}"
 							suffix="s"
-						></gyro-fluid-input>
+						></fluid-input>
 					</div>
 				</div>
 				<br />

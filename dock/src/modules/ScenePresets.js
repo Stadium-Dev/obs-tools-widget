@@ -21,11 +21,11 @@ export default class ScenePresets extends DockTab {
 			Config.set('preset-easing-curve', this.easingSelect.value);
 		});
 
-		this.transitionLengthInput = document.createElement('gyro-fluid-input');
-		this.transitionLengthInput.suffix = 's';
+		this.transitionLengthInput = document.createElement('fluid-input');
+		this.transitionLengthInput.setAttribute('suffix', 's');
 		this.transitionLengthInput.value = Config.get('preset-transition-length') || 1;
 		this.transitionLengthInput.min = 0;
-		this.transitionLengthInput.max = 10;
+		this.transitionLengthInput.max = 5;
 		this.transitionLengthInput.steps = 0.1;
 		this.transitionLengthInput.onchange = () => {
 			Config.set('preset-transition-length', this.transitionLengthInput.value);
@@ -54,7 +54,7 @@ export default class ScenePresets extends DockTab {
 				margin-top: 0;
 				font-size: 12px;
 			}
-			gyro-fluid-input {
+			fluid-input {
 				min-width: 130px;
 			}
 			dropdown-button {
@@ -123,14 +123,14 @@ export default class ScenePresets extends DockTab {
 		return html`
 			<link href="./material-icons.css" rel="stylesheet" />
 
-			<obs-dock-tab-section section-title="Controls">
+			<obs-dock-tab-section section-title="Transition Controls">
 				<div class="row">
-					<label>Transition Time</label>
+					<label>Time</label>
 					${this.transitionLengthInput}
 				</div>
 
 				<div class="row">
-					<label>Transition Curve</label>
+					<label>Easing</label>
 					${this.easingSelect}
 				</div>
 			</obs-dock-tab-section>

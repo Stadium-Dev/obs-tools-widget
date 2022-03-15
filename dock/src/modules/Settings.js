@@ -63,22 +63,20 @@ export default class Settings extends DockTab {
 			<link href="./material-icons.css" rel="stylesheet" />
 
 			<obs-dock-tab-section section-title="Streamlabs Integration">
-				<label>Streamlabs Websocket Token</label>
-				<input
-					value="${Config.get('streamlabs-websocket-token') || ''}"
-					id="streamlabsWebsocketToken"
-					@change="${(e) => Config.set('streamlabs-websocket-token', e.target.value)}"
-					class="full"
-					type="password"
-					placeholder="Websocket Token"
-				/>
-				<button @click="${(e) => this.showToken('streamlabsWebsocketToken', e.target)}">show</button>
+				<div class="row">
+					<input
+						value="${Config.get('streamlabs-websocket-token') || ''}"
+						id="streamlabsWebsocketToken"
+						@change="${(e) => Config.set('streamlabs-websocket-token', e.target.value)}"
+						class="full"
+						type="password"
+						placeholder="Websocket Token"
+					/>
+					<button @click="${(e) => this.showToken('streamlabsWebsocketToken', e.target)}">show</button>
+				</div>
 			</obs-dock-tab-section>
 
 			<obs-dock-tab-section section-title="OBS WebSocket Integration">
-				<div style="margin: 5px 0 15px 0;">
-					<label> Install obs-websocket plugin for automation features. </label>
-				</div>
 				<div class="row">
 					<label>WebSocket URL</label>
 					<input
