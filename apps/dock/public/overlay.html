@@ -74,6 +74,10 @@
 				for (let data of eventBuffer) {
 					postData(data, '*');
 				}
+
+				setTimeout(() => {
+					Provider.broadcastProperties();
+				}, 100);
 			}
 
 			function handleMessage({ data }) {

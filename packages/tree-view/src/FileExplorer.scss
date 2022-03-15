@@ -3,6 +3,7 @@
 	height: inherit;
 	width: 100%;
 	--display-toolbar: grid;
+	--gyro-pallate-panel-content: rgb(35, 35, 35);
 }
 
 ::-webkit-scrollbar {
@@ -296,7 +297,7 @@ button.solid:active {
 }
 
 .search {
-	padding: 10px 8px;
+	margin-bottom: 8px;
 	background: var(--gyro-pallate-panel-content);
 }
 

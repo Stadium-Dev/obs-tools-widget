@@ -6,9 +6,10 @@ export default class DockTabSection extends LitElement {
 	static get styles() {
 		return css`
 			:host {
-				margin: 0px;
+				margin: 2px;
 				position: relative;
 				display: block;
+				background: var(--pane-background);
 				--content-padding: 8px 8px 12px 8px;
 			}
 			.title {
@@ -20,10 +21,10 @@ export default class DockTabSection extends LitElement {
 				align-items: center;
 				width: 100%;
 				text-align: left;
-				font-size: 12px;
-				color: rgb(152 152 152);
+				font-size: 13px;
+				color: rgb(169 169 169);
 				font-weight: 400;
-				padding: 5px 7px 5px 7px;
+				padding: 8px 10px;
 				box-sizing: border-box;
 				margin-bottom: 1px;
 			}

@@ -123,14 +123,14 @@ export default class ScenePresets extends DockTab {
 		return html`
 			<link href="./material-icons.css" rel="stylesheet" />
 
-			<obs-dock-tab-section section-title="Controls">
+			<obs-dock-tab-section section-title="Transition Controls">
 				<div class="row">
-					<label>Transition Time</label>
+					<label>Time</label>
 					${this.transitionLengthInput}
 				</div>
 
 				<div class="row">
-					<label>Transition Curve</label>
+					<label>Easing</label>
 					${this.easingSelect}
 				</div>
 			</obs-dock-tab-section>

@@ -47,6 +47,10 @@ export class Provider {
 	static onPropertyUpdate(callback) {
 		eventTarget.addEventListener('update', (e) => callback(e));
 	}
+
+	static broadcastProperties() {
+		broadcastProperties();
+	}
 }
 
 export class PropertyStorage {

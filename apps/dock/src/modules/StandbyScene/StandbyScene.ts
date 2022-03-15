@@ -7,11 +7,8 @@ export default class BitrateDetection extends DockTab {
 	render() {
 		return html`
 			<obs-dock-tab-section section-title="Configuration">
-				<div style="margin: 5px 0 15px 0;">
-					<label>URL to the nginx stat.xsl</label>
-				</div>
 				<div class="row">
-					<label>URL</label>
+					<label>URL to stat.xsl</label>
 					<app-state scope="bitrate-detection">
 						<input spellcheck="false" type="text" state-key="nginx-stat-url" placeholder="http://localhost/stat" />
 					</app-state>

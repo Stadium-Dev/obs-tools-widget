@@ -65,9 +65,7 @@ export default class Timer extends DockTab {
 		return css`
 			${super.styles}
 			:host {
-				display: grid;
 				height: 100%;
-				grid-template-rows: auto auto auto auto 1fr auto;
 			}
 			input {
 				display: inline-block;
@@ -341,10 +339,9 @@ export default class Timer extends DockTab {
 
 		const updateStartTime = () => {
 			const h = this.shadowRoot.querySelector('#startTimeH').value,
-				m = this.shadowRoot.querySelector('#startTimeM').value,
-				s = this.shadowRoot.querySelector('#startTimeS').value;
+				m = this.shadowRoot.querySelector('#startTimeM').value;
 
-			const time = h * 60 * 60 + m * 60 + s;
+			const time = h * 60 * 60 + m * 60;
 			Config.set('start-time', time);
 		};
 
@@ -415,15 +412,6 @@ export default class Timer extends DockTab {
 								@change="${(e) => updateStartTime()}"
 								value="${minutes}"
 								suffix="m"
-							></fluid-input>
-							<fluid-input
-								id="startTimeS"
-								min="0"
-								max="59"
-								steps="1"
-								@change="${(e) => updateStartTime()}"
-								value="${seconds}"
-								suffix="s"
 							></fluid-input>
 						</div>
 					</div>

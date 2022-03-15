@@ -40,7 +40,6 @@ class AddFileEvent extends Event {
 
 @customElement('tree-view')
 export class FileExplorer extends LitElement {
-
 	static get styles() {
 		return css`
 			${styles}
@@ -50,7 +49,7 @@ export class FileExplorer extends LitElement {
 	inFocus() {
 		return this._inFocus;
 	}
-	
+
 	constructor() {
 		super();
 
@@ -101,14 +100,14 @@ export class FileExplorer extends LitElement {
 		// focus handlers
 		this._inFocus = true;
 
-		this.addEventListener('mousemove', e => {
-				this._inFocus = true;
+		this.addEventListener('mousemove', (e) => {
+			this._inFocus = true;
 		});
-		this.addEventListener('mouseleave', e => {
-				this._inFocus = false;
+		this.addEventListener('mouseleave', (e) => {
+			this._inFocus = false;
 		});
-		this.addEventListener('mouseout', e => {
-				this._inFocus = false;
+		this.addEventListener('mouseout', (e) => {
+			this._inFocus = false;
 		});
 	}
 
@@ -201,9 +200,6 @@ export class FileExplorer extends LitElement {
 	render() {
 		if (!this.tree) {
 			return html`
-				<style>
-					${styles}
-				</style>
 				<div></div>
 				<div class="root">
 					<div class="placeholder">

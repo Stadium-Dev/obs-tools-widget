@@ -1,39 +1,53 @@
 const overlays = [
 	{
 		name: 'Timer Overlay',
-		url: './overlay.html?layer-name=Timer%20Overlay&layer-width=1920&layer-height=1080#/apps/overlays/public/timer.html'
+		url: '/apps/overlays/public/timer.html'
 	},
 	{
 		name: 'Subathon Overlay',
-		url: './overlay.html?layer-name=Subathon%20Overlay&layer-width=1920&layer-height=1080#/apps/overlays/public/subathon.html'
+		url: '/apps/overlays/public/subathon.html'
 	},
 	{
 		name: 'Labels Overlay',
-		url: './overlay.html?layer-name=Labels%20Overlay&layer-width=1920&layer-height=1080#/apps/overlays/public/labels.html'
+		url: '/apps/overlays/public/labels.html'
 	},
 	{
 		name: 'Title',
-		url: './overlay.html?layer-name=Title%20Overlay&layer-width=1920&layer-height=1080#/apps/overlays/public/title.html'
+		url: '/apps/overlays/public/title.html'
 	}
 ];
 
+let cusromOverlays = [];
+
+function save() {
+	localStorage.setItem('overlay-store', JSON.stringify(cusromOverlays));
+}
+
+function load() {
+	return JSON.parse(localStorage.getItem('overlay-store'));
+}
+
 export default class Overlays {
 	static getOverlayList() {
-		return overlays;
+		cusromOverlays = load();
+		return [...overlays, ...cusromOverlays];
 	}
 
 	static addOverlay(name, url) {
-		overlays.push({ name, url });
+		cusromOverlays.push({ name, url });
+		save();
 	}
 
 	static removeOverlay(name) {
 		let i = 0;
-		for (let overlay of overlays) {
+		for (let overlay of cusromOverlays) {
 			if (overlay.name == name) {
-				overlays.splice(i, 1);
+				cusromOverlays.splice(i, 1);
 				break;
 			}
 			i++;
 		}
+
+		save();
 	}
 }

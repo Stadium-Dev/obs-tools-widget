@@ -81,6 +81,15 @@ export default class Overlay extends DockTab {
 			.reset-property-btn i.material-icons {
 				font-size: 16px;
 			}
+			.toolbar {
+				margin: 8px 0;
+				display: flex;
+				justify-content: space-between;
+			}
+			.toolbar button {
+				padding: 2px;
+				min-width: 1.5rem;
+			}
 		`;
 	}
 
@@ -96,23 +105,26 @@ export default class Overlay extends DockTab {
 		super.connectedCallback();
 
 		setTimeout(() => {
-			this.shadowRoot.querySelector("tree-view").setRoot( {
-						name: "test",
-						type: "file",
-						uncollapsed: true,
-						children: [{
-						name: "test",
-						type: "file",
+			this.shadowRoot.querySelector('tree-view').setRoot({
+				name: 'test',
+				type: 'file',
+				uncollapsed: true,
+				children: [
+					{
+						name: 'test',
+						type: 'file',
 						uncollapsed: false,
-						children: [],
-				},{
-						name: "test",
-						type: "file",
+						children: []
+					},
+					{
+						name: 'test',
+						type: 'file',
 						uncollapsed: false,
-						children: [],
-				}],
-			} )
-		})
+						children: []
+					}
+				]
+			});
+		});
 	}
 
 	resetProperty(propId, prop) {
@@ -205,31 +217,49 @@ export default class Overlay extends DockTab {
 			<link href="./material-icons.css" rel="stylesheet" />
 
 			<obs-dock-tab-section .enabled="${true}" optional section-title="Overlay Drag & Drop" class="overlay-section">
+				<!-- <tree-view></tree-view> -->
 				${overlays.map((overlay) => {
+					const name = encodeURIComponent(overlay.name);
+					const url = `./overlay.html?layer-name=${name}&layer-width=1920&layer-height=1080#${overlay.url}`;
 					return html`
-						<a class="drag-and-button" @click="${(e) => e.preventDefault()}" href="${overlay.url}">
+						<a class="drag-and-button" @click="${(e) => e.preventDefault()}" href="${url}">
 							<i class="material-icons">layers</i>
 							<span>${overlay.name}</span>
 						</a>
 					`;
 				})}
-			</obs-dock-tab-section>
-
-			<obs-dock-tab-section>
-				<tree-view></tree-view>
+				<div class="toolbar">
+					<span></span>
+					<button
+						@click="${() => {
+							const url = prompt('Overlay URL');
+							try {
+								const valid = new URL(url);
+								if (valid) {
+									Overlays.addOverlay('Custom Overlay', url);
+									this.requestUpdate();
+								}
+							} catch (err) {
+								alert('Not a valid URL');
+							}
+						}}"
+					>
+						+
+					</button>
+				</div>
 			</obs-dock-tab-section>
 
 			<obs-dock-tab-section section-title="Overlay Properties">
 				<div class="properties">
 					${this.selection.map((item) => {
-						if (item.props) {
+						if (item.props && Object.keys(item.props).length > 0) {
 							return html`
 								<div>${item.itemName}</div>
 								${Object.keys(item.props).map(
 									(key) => html` <div class="row">${this.renderProperty(key, item.props[key])}</div> `
 								)}
 							`;
-						} else {
+						} else if (item.props) {
 							return html`
 								<div>${item.itemName}</div>
 								<div class="placeholder">No custom properties</div>

@@ -20,6 +20,7 @@ export default class DockTab extends LitElement {
 				color: #eee;
 				padding: 5px 8px;
 				font-size: 13px;
+				width: 130px;
 			}
 			[disabled] {
 				opacity: 0.75;
