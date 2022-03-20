@@ -7,7 +7,7 @@ import Events from '../../Events';
 	let previousScene: string | null = null;
 
 	setInterval(async () => {
-		const statUrl = Config.get('obs-bitrate-detection-stat-url');
+		const statUrl = State.getState('bitrate-detection')['nginx-stat-url'];
 
 		if (statUrl) {
 			const data = await fetch(statUrl).then((res) => res.text());
@@ -34,7 +34,7 @@ import Events from '../../Events';
 								Events.emit(Events.RTMPLowBitrateDetected);
 								const standByScene = State.getState('bitrate-detection')['standby-scene'];
 								if (standByScene) {
-									previousScene = OBS.getCurrentScene();
+									previousScene = OBS.getState().currentScene;
 									OBS.setCurrentScene(standByScene.name);
 								}
 							} else {

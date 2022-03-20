@@ -20,10 +20,14 @@ window.addEventListener('load', () => {
 	// load last state
 	const saveState = localStorage.getItem('app-state');
 	if (saveState) {
-		const state = JSON.parse(saveState);
-		// dont rstore realtime bitrates
-		// State.setState('rtmp-stats', state['rtmp-stats']);
-		State.setState('bitrate-detection', state['bitrate-detection']);
+		try {
+			const state = JSON.parse(saveState);
+			// dont rstore realtime bitrates
+			// State.setState('rtmp-stats', state['rtmp-stats']);
+			State.setState('bitrate-detection', state['bitrate-detection']);
+		} catch(err) {
+			console.error(err);
+		}
 	}
 });
 

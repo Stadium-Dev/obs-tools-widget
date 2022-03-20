@@ -11,7 +11,7 @@ export default class SceneSelector extends DropdownButton {
 
 		if (obsScenes) {
 			for (let scene of obsScenes) {
-				scenes.push({ name: scene.sceneName, value: scene.sceneName });
+				scenes.push({ name: scene.name, value: scene.name });
 			}
 		}
 
