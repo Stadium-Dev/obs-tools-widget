@@ -1,6 +1,3 @@
-// localStorage.debug = 'obs-websocket-js:*';
-import Config from '../../../apps/dock/src/services/Config.js';
-
 const tickrate = 1000 / 12;
 const lokalStatus = {
 	currentScene: ''
@@ -9,7 +6,7 @@ const lokalStatus = {
 globalThis.lokalStatus = lokalStatus;
 
 const obs = new OBSWebSocket();
-const obsWebSocketPort = Config.get('obs-websocket-port') || 'localhost:4444';
+const obsWebSocketPort = 'localhost:4444';
 obs.connect({ address: obsWebSocketPort });
 
 obs.on('ConnectionClosed', connectionClosed);

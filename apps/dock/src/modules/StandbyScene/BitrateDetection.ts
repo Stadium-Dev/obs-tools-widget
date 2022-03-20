@@ -1,8 +1,11 @@
 import Config from '../../services/Config.js';
 import { State } from 'app-state';
 import { OBS } from 'obs';
+import Events from '../../Events';
 
 (async () => {
+	let previousScene: string | null = null;
+
 	setInterval(async () => {
 		const statUrl = Config.get('obs-bitrate-detection-stat-url');
 
@@ -28,12 +31,21 @@ import { OBS } from 'obs';
 							const video_bitrate = Math.floor(+bw_video / 1024);
 
 							if (video_bitrate < 500) {
-								console.log('OhOh');
-
+								Events.emit(Events.RTMPLowBitrateDetected);
 								const standByScene = State.getState('bitrate-detection')['standby-scene'];
 								if (standByScene) {
+									previousScene = OBS.getCurrentScene();
 									OBS.setCurrentScene(standByScene.name);
 								}
+							} else {
+								Events.emit(Events.RTMPConnectionRestored);
+								if (previousScene) {
+									OBS.setCurrentScene(previousScene);
+								}
+							}
+
+							if (video_bitrate < 10) {
+								Events.emit(Events.RTMPConnectionLost);
 							}
 
 							bitrates.push({ name: name.textContent, bitrate: video_bitrate });
