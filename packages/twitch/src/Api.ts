@@ -1,7 +1,7 @@
 import TwitchPubsub from './Pubsub';
 
 const CLIENT_ID = '8gwe8mu523g9cstukr8rnnwspqjykf';
-const REDIRECT_URI = 'http://localhost:5500/apps/dock/public/auth.html';
+const REDIRECT_URI = 'https://stadium-dev.github.io/obs-tools-widget/dock/public/';
 
 // "/users" reference from twitch api
 export interface UserInfo {
