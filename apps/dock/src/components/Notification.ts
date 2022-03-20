@@ -56,7 +56,7 @@ export default class UINotification {
 							color: #eee;
 							font-size: 12px;
 							opacity: 0.98;
-							min-width: 150px;
+							min-width: 200px;
 							animation: slide-in .15s ease;
 							user-select: none;
 							cursor: pointer;
@@ -78,7 +78,7 @@ export default class UINotification {
 							background: black;
 					}
 					@keyframes slide-in {
-							from { transform: translateY(-100%); opacity: 0; }
+							from { transform: translateY(100%); opacity: 0; }
 					}
 					@keyframes fade-out {
 							to { opacity: 0; }

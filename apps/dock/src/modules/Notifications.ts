@@ -60,6 +60,10 @@ export default class Settings extends DockTab {
 				chat.join('nidalida');
 			});
 
+			chat.onMessage((msg) => {
+				new UINotification({ text: msg.detail.text }).show();
+			});
+
 			this.requestUpdate();
 		});
 	}

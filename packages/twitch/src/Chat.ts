@@ -24,9 +24,17 @@ export class TwitchChat {
 
 			this.ws.onmessage = (msg) => {
 				const ircMessage = msg.data;
-				console.log('Chat Message', ircMessage);
+				const parts = ircMessage.split(':');
+				const text = parts[parts.length - 1];
+				console.log('Chat Message:', text);
+
+				window.dispatchEvent(new CustomEvent('twitch-chat-message', { detail: { parts, text } }));
 			};
 		});
+	}
+
+	onMessage(callback: (msg: Event) => void) {
+		window.addEventListener('twitch-chat-message', callback);
 	}
 
 	join(channel: string): void {

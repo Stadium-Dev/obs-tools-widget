@@ -24,6 +24,7 @@
     <meta name="theme-color" content="#333" />
 
     <script src="./libs/socket.io.js"></script>
+		<script src="./libs/obs-websocket.js"></script>
 
     <script src="main.bundle.js" type="module"></script>
 
@@ -78,10 +79,18 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #444;
         }
+
+				notifications {
+					position: fixed;
+					bottom: 10px;
+					left: 50%;
+					transform: translate(-50%, 0);
+					z-index: 10000000;
+				}
     </style>
 </head>
 
-<body style="background: #1c1c1c;">
+<body>
 
     <gyro-layout>
         <gyro-layout-column>
