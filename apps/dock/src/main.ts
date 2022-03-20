@@ -14,6 +14,7 @@ import './modules/Controler.js';
 import './modules/MidiSceneSwitcher.js';
 import './modules/Labels.js';
 import './modules/StandbyScene';
+import './modules/Notifications';
 
 // services
 import './services/Streamlabs.js';
