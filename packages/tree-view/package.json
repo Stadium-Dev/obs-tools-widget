@@ -1,9 +1,0 @@
-{
-    "name": "tree-view",
-    "version": "1.0.0",
-    "description": "component for a tree view",
-    "main": "./index.ts",
-    "types": "./index.ts",
-    "author": "",
-    "license": "ISC"
-}
