@@ -1,6 +1,6 @@
 {
   "name": "dock",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "tools custom dock",
   "main": "index.js",
   "scripts": {
@@ -12,21 +12,23 @@
     "url": "git+https://github.com/luckydye/obs-tools-widget.git"
   },
   "devDependencies": {
+    "css-loader": "^6.6.0",
+    "extract-loader": "^5.1.0",
     "lit": "latest",
-		"lit-scss-loader": "^1.1.0",
+    "lit-scss-loader": "^1.1.0",
     "sass": "^1.49.7",
     "sass-loader": "^12.4.0",
     "ts-loader": "^9.2.6",
-    "typescript": "^4.3.5",
-		"css-loader": "^6.6.0",
-    "extract-loader": "^5.1.0",
-    "webpack": "^5.66.0",
-    "webpack-cli": "latest"
+    "typescript": "^4.3.5"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/luckydye/obs-tools-widget/issues"
   },
-  "homepage": "https://github.com/luckydye/obs-tools-widget#readme"
+  "homepage": "https://github.com/luckydye/obs-tools-widget#readme",
+  "dependencies": {
+    "webpack": "^5.70.0",
+    "webpack-cli": "^4.9.2"
+  }
 }

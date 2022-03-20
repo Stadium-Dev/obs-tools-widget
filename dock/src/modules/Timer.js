@@ -149,7 +149,6 @@ export default class Timer extends DockTab {
 
 		this.time = 60 * 60 * 12;
 		this.elapsedTime = 0;
-		this.autoSceneSwitchEnabled = false;
 		this.subathonFeaturesEnabled = false;
 
 		if (Config.get('elapsed-time') != null) {
@@ -288,13 +287,6 @@ export default class Timer extends DockTab {
 	}
 
 	onTimerEnd() {
-		if (this.autoSceneSwitchEnabled) {
-			const selectEle = this.shadowRoot.querySelector('#autoSwitchSceneSelect');
-			const sceneToSwitchTo = selectEle.value;
-			if (sceneToSwitchTo && sceneToSwitchTo !== 'none') {
-				OBS.setCurrentScene(sceneToSwitchTo);
-			}
-		}
 		if (this.shadowRoot.querySelector('#autoreset').checked) {
 			this.forceReset();
 			setTimeout(() => this.pausePlayTimer(), 1000);
@@ -505,25 +497,6 @@ export default class Timer extends DockTab {
 							})}
 						</div>
 					</div>
-				</div>
-			</obs-dock-tab-section>
-
-			<obs-dock-tab-section
-				optional
-				section-title="Timed scene switch"
-				@setion-change="${(e) => {
-					this.autoSceneSwitchEnabled = e.target.enabled;
-				}}"
-			>
-				<div class="row">
-					<label>Scene</label>
-					<select id="autoSwitchSceneSelect" ?disabled="${this.obsScenes.length == 0}">
-						${this.obsScenes.length
-							? this.obsScenes.map(({ name }) => {
-									return html`<option value="${name}">${name}</option>`;
-							  })
-							: html`<option value="none">No Scenes Available</option>`}
-					</select>
 				</div>
 			</obs-dock-tab-section>
 		`;

@@ -1,7 +1,6 @@
 import { css, html } from 'lit';
 import Config from '../services/Config.js';
 import DockTab from '../components/DockTab.js';
-import Twitch from '../services/Twitch.js';
 
 export default class Settings extends DockTab {
 	static get styles() {
@@ -30,11 +29,6 @@ export default class Settings extends DockTab {
 				width: 240px;
 			}
 		`;
-	}
-
-	constructor() {
-		super();
-		Twitch.loadAuthentication();
 	}
 
 	showToken(id, btn) {

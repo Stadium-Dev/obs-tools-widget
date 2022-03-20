@@ -4,14 +4,14 @@ import { OBS } from 'obs';
 
 @customElement('scene-selector')
 export default class SceneSelector extends DropdownButton {
-	getScenes() {
+	async getScenes() {
 		const scenes = [{ name: 'None', value: 'None' }];
 
-		const obsScenes = OBS.getState().scenes;
+		const obsScenes = await OBS.getScenes();
 
 		if (obsScenes) {
 			for (let scene of obsScenes) {
-				scenes.push({ name: scene.name, value: scene.name });
+				scenes.push({ name: scene.sceneName, value: scene.sceneName });
 			}
 		}
 
@@ -19,6 +19,6 @@ export default class SceneSelector extends DropdownButton {
 	}
 
 	async onOpenDropdown(): Promise<void> {
-		this.options = this.getScenes();
+		this.options = await this.getScenes();
 	}
 }
